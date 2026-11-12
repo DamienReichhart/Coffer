@@ -594,16 +594,16 @@ mod tests {
     fn suggests_an_output_next_to_the_input() {
         let mut form = Form::from_defaults(&CompressDefaults::default());
         form.add_inputs(vec![PathBuf::from("/home/me/report.pdf")]);
-        assert_eq!(form.output, Path::new("/home/me/report.7z").display().to_string());
+        assert_eq!(PathBuf::from(&form.output), Path::new("/home/me").join("report.7z"));
         form.update_format_for_test(ArchiveFormat::Zip);
-        assert_eq!(form.output, Path::new("/home/me/report.zip").display().to_string());
+        assert_eq!(PathBuf::from(&form.output), Path::new("/home/me").join("report.zip"));
     }
 
     #[test]
     fn several_inputs_are_named_after_their_folder() {
         let mut form = Form::from_defaults(&CompressDefaults::default());
         form.add_inputs(vec![PathBuf::from("/home/me/a.txt"), PathBuf::from("/home/me/b.txt")]);
-        assert_eq!(form.output, Path::new("/home/me/me.7z").display().to_string());
+        assert_eq!(PathBuf::from(&form.output), Path::new("/home/me").join("me.7z"));
     }
 
     #[test]
