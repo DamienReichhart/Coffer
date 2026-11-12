@@ -75,7 +75,7 @@ fn portable(installer: &Path, exe: &Path) -> Result<Handover, Error> {
     let mut found = None;
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i).map_err(|e| Error::Install(e.to_string()))?;
-        let name = entry.enclosed_name().and_then(|p| p.file_name().map(|n| n.to_os_string()));
+        let name = entry.enclosed_name().and_then(|p| p.file_name().map(std::ffi::OsStr::to_os_string));
         if name.as_deref() == Some(std::ffi::OsStr::new(&wanted)) {
             let target = installer.with_extension("exe");
             let mut out = std::fs::File::create(&target)?;
@@ -93,12 +93,6 @@ fn portable(installer: &Path, exe: &Path) -> Result<Handover, Error> {
 
 #[cfg(target_os = "macos")]
 fn dmg(installer: &Path, exe: &Path) -> Result<Handover, Error> {
-    // .../7zip-GUI.app/Contents/MacOS/7zip-gui → .../7zip-GUI.app
-    let bundle = exe
-        .ancestors()
-        .nth(3)
-        .filter(|p| p.extension().is_some_and(|e| e == "app"))
-        .ok_or_else(|| Error::Install("the app is not running from an .app bundle".into()))?;
     const SCRIPT: &str = r#"
 pid="$1"; dmg="$2"; target="$3"
 while kill -0 "$pid" 2>/dev/null; do sleep 0.3; done
@@ -115,6 +109,12 @@ hdiutil detach -quiet "$mnt"
 rmdir "$mnt" 2>/dev/null
 open "$target"
 "#;
+    // .../7zip-GUI.app/Contents/MacOS/7zip-gui → .../7zip-GUI.app
+    let bundle = exe
+        .ancestors()
+        .nth(3)
+        .filter(|p| p.extension().is_some_and(|e| e == "app"))
+        .ok_or_else(|| Error::Install("the app is not running from an .app bundle".into()))?;
     detach(
         Command::new("/bin/sh")
             .arg("-c")

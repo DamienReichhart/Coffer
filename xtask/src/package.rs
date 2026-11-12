@@ -367,6 +367,12 @@ fn rtf(text: &str) -> String {
 
 // macOS ----------------------------------------------------------------------
 
+#[cfg(not(unix))]
+fn dmg(_: &Ctx<'_>) -> Result<PathBuf> {
+    bail!("disk images are built on macOS")
+}
+
+#[cfg(unix)]
 fn dmg(ctx: &Ctx<'_>) -> Result<PathBuf> {
     let stage = ctx.work.join("dmg");
     let app = stage.join(format!("{PRODUCT}.app"));
@@ -399,10 +405,7 @@ fn dmg(ctx: &Ctx<'_>) -> Result<PathBuf> {
     exec(codesign.arg(&app))?;
     exec(Command::new("codesign").args(["--verify", "--strict", "--verbose=2"]).arg(&app))?;
 
-    #[cfg(unix)]
     std::os::unix::fs::symlink("/Applications", stage.join("Applications")).context("Applications link")?;
-    #[cfg(not(unix))]
-    bail!("disk images are built on macOS");
     let out = ctx.asset("dmg");
     if out.exists() {
         std::fs::remove_file(&out)?;
@@ -433,6 +436,7 @@ fn dmg(ctx: &Ctx<'_>) -> Result<PathBuf> {
 }
 
 /// Notarizes and staples the disk image when Apple credentials are set.
+#[cfg(unix)]
 fn notarize(dmg: &Path) -> Result<()> {
     let (Ok(id), Ok(password), Ok(team)) =
         (std::env::var("APPLE_ID"), std::env::var("APPLE_PASSWORD"), std::env::var("APPLE_TEAM_ID"))
@@ -488,6 +492,7 @@ fn set_mode(path: &Path, mode: u32) -> Result<()> {
 }
 
 #[cfg(not(unix))]
+#[allow(clippy::unnecessary_wraps)] // same signature as the Unix version
 fn set_mode(_: &Path, _: u32) -> Result<()> {
     Ok(())
 }

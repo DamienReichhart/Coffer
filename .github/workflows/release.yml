@@ -206,7 +206,9 @@ jobs:
           exit "$missing"
       - name: Checksums
         working-directory: installers
-        run: sha256sum -- $(ls | grep -v '\.minisig$') | tee SHA256SUMS.txt
+        run: |
+          find . -maxdepth 1 -type f ! -name '*.minisig' -printf '%f\n' | sort | xargs sha256sum -- | tee "$RUNNER_TEMP/SHA256SUMS.txt"
+          mv "$RUNNER_TEMP/SHA256SUMS.txt" SHA256SUMS.txt
       - uses: actions/attest-build-provenance@v4
         with:
           subject-path: installers/*

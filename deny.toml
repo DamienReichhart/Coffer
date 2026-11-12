@@ -15,6 +15,10 @@ targets = [
 [advisories]
 version = 2
 yanked = "deny"
+# Vulnerabilities fail everywhere in the tree. "Unmaintained" notices only fail
+# for our direct dependencies: deep in iced's tree (zbus, zvariant…) there is
+# nothing to switch to until upstream moves, and Dependabot tracks that.
+unmaintained = "workspace"
 # Add an advisory here only with a written reason and an expiry plan.
 ignore = []
 

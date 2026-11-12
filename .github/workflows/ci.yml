@@ -146,8 +146,10 @@ jobs:
         run: |
           rpm -qip dist/*.rpm
           rpm -qlp dist/*.rpm | grep -q /usr/lib/7zip-gui/install-kind
-          chmod +x dist/*.AppImage
-          APPIMAGE_EXTRACT_AND_RUN=1 ./dist/*.AppImage --version
+          for appimage in dist/*.AppImage; do
+            chmod +x "$appimage"
+            "$appimage" --version # APPIMAGE_EXTRACT_AND_RUN is set by the tools script
+          done
 
   # The website: lint, unit tests, real screenshots from the app, and a full
   # build (types, internal links).
