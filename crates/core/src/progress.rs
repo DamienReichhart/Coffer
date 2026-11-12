@@ -18,6 +18,9 @@ pub enum Signal {
 #[derive(Debug, Default)]
 pub struct Parser {
     pending: Vec<u8>,
+    /// A `\r` was the last byte seen: it ends a line if `\n` follows
+    /// (Windows line endings), otherwise it is a progress redraw.
+    carriage_return: bool,
 }
 
 impl Parser {
@@ -29,9 +32,13 @@ impl Parser {
     pub fn feed(&mut self, chunk: &[u8]) -> Vec<Signal> {
         let mut signals = Vec::new();
         for &byte in chunk {
+            if std::mem::take(&mut self.carriage_return) && byte != b'\n' {
+                self.flush(&mut signals, false);
+            }
             match byte {
                 b'\n' => self.flush(&mut signals, true),
-                b'\r' | 0x08 => self.flush(&mut signals, false),
+                b'\r' => self.carriage_return = true,
+                0x08 => self.flush(&mut signals, false),
                 _ => self.pending.push(byte),
             }
         }
@@ -40,6 +47,7 @@ impl Parser {
 
     /// Returns whatever is left at the end of the stream.
     pub fn finish(&mut self) -> Vec<Signal> {
+        self.carriage_return = false;
         let mut signals = Vec::new();
         self.flush(&mut signals, true);
         signals
@@ -133,6 +141,23 @@ mod tests {
         assert_eq!(parse_progress("100%"), Some(progress(100, None)));
         assert_eq!(parse_progress("Scanning"), None);
         assert_eq!(parse_progress("250%"), None);
+    }
+
+    #[test]
+    fn windows_line_endings_end_lines_even_across_chunks() {
+        let mut parser = Parser::new();
+        let mut signals = parser.feed(b"CRC32    Name\r\n-------- ----\r");
+        signals.extend(parser.feed(b"\n363A3020 a.txt\r\n  5%\r 9%\r\n"));
+        assert_eq!(
+            signals,
+            [
+                Signal::Line("CRC32    Name".into()),
+                Signal::Line("-------- ----".into()),
+                Signal::Line("363A3020 a.txt".into()),
+                progress(5, None),
+                progress(9, None),
+            ]
+        );
     }
 
     #[test]
