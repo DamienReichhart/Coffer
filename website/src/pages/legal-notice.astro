@@ -1,0 +1,45 @@
+---
+import LegalDocument from '@/components/LegalDocument.astro';
+import { AUTHOR, ISSUES_URL, NAME, REPO_URL } from '@/lib/site';
+---
+
+<LegalDocument
+  title={`Legal notice — ${NAME}`}
+  description={`Who publishes ${NAME}, its licence, and its relationship to 7-Zip.`}
+  updated="12 November 2026"
+>
+  <h2>Publisher</h2>
+  <p>
+    {NAME} and this website are published by {AUTHOR}, as an open-source project developed in the
+    open at <a href={REPO_URL}>{REPO_URL.replace('https://', '')}</a>. Contact: through{' '}
+    <a href={ISSUES_URL}>GitHub issues</a>.
+  </p>
+  <p>The website is hosted by GitHub, Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA.</p>
+
+  <h2>Independent project</h2>
+  <p>
+    <strong>{NAME} is not affiliated with, endorsed by, sponsored by or otherwise connected to 7-Zip
+    or Igor Pavlov.</strong> “7-Zip” is the name of the file archiver created by Igor Pavlov, and the
+    7-Zip name and software belong to their author. They are used here only to describe what {NAME}
+    works with.
+  </p>
+  <p>
+    {NAME} does not include, distribute or download 7-Zip. It runs the 7-Zip command-line program that
+    the user installs separately, from the 7-Zip project or their operating system’s package
+    repositories, under 7-Zip’s own licence.
+  </p>
+  <p>Other names and trademarks mentioned on this site belong to their respective owners.</p>
+
+  <h2>Licence</h2>
+  <p>
+    {NAME} is free software released under the{' '}
+    <a href={`${REPO_URL}/blob/main/LICENSE`}>MIT licence</a>. It is provided “as is”, without
+    warranty of any kind. Always keep backups of data you care about, and test archives before you
+    delete the originals.
+  </p>
+  <p>
+    Third-party components bundled with the app (such as the Inter typeface, under the SIL Open
+    Font License, and Rust libraries under their own licences) are listed with their notices in the
+    app’s About screen and in the source repository.
+  </p>
+</LegalDocument>

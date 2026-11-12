@@ -1,0 +1,30 @@
+[package]
+name = "sevenzip-core"
+description = "Find, drive and understand a user-installed 7-Zip command-line executable."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+thiserror.workspace = true
+tokio = { workspace = true, features = ["process", "io-util", "rt", "macros", "sync", "time"] }
+futures-core.workspace = true
+async-stream.workspace = true
+tracing.workspace = true
+serde = { workspace = true, features = ["derive"] }
+which.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+winreg.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "fs"] }
+futures-util.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

@@ -1,0 +1,45 @@
+name: Bug report
+description: Something doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please check the [troubleshooting guide](https://damienreichhart.github.io/7zip-GUI/docs/troubleshooting/) first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open …\n2. Click …"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 7zip-GUI version and install type
+      description: Shown in About (e.g. "0.1.0, msi").
+    validations:
+      required: true
+  - type: input
+    id: seven
+    attributes:
+      label: 7-Zip version
+      description: Shown in the sidebar (e.g. "7-Zip 24.09").
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [Windows, macOS, Linux]
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: Settings → Logs opens the folder. Paste the relevant lines (passwords are never logged).
+      render: text

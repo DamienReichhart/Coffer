@@ -1,0 +1,135 @@
+---
+/*
+ * The changelog: CHANGELOG.md at the repository root (Keep a Changelog), one
+ * entry per version with a stable anchor (`#v1-2-3`, the update manifest's
+ * notes_url points there). An empty "Unreleased" section is hidden.
+ */
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { marked } from 'marked';
+import Icon from '@/components/Icon.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { hasContent, parseChangelog } from '@/lib/changelog';
+import { changelogAnchor, formatDate } from '@/lib/format';
+import { NAME, REPO_URL } from '@/lib/site';
+
+const path = resolve(process.cwd(), process.env.CHANGELOG_PATH || '../CHANGELOG.md');
+const entries = existsSync(path)
+  ? parseChangelog(readFileSync(path, 'utf8')).filter((e) => !e.unreleased || hasContent(e))
+  : [];
+const rendered = await Promise.all(
+  entries.map(async (e) => ({
+    ...e,
+    id: e.unreleased ? 'unreleased' : changelogAnchor(e.version),
+    html: await marked.parse(e.body, { gfm: true }),
+  })),
+);
+---
+
+<SiteLayout title={`Changelog — ${NAME}`} description={`Every notable change to ${NAME}, version by version.`}>
+  <section class="section">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">Changelog</span>
+        <h1>What’s new</h1>
+        <p>
+          Every notable change, newest first. The source is{' '}
+          <a href={`${REPO_URL}/blob/main/CHANGELOG.md`}>CHANGELOG.md</a>; the app shows the same notes
+          when it offers an update.
+        </p>
+      </div>
+
+      {rendered.length === 0 && <p class="empty">No releases yet.</p>}
+
+      <ol class="timeline">
+        {rendered.map((entry) => (
+          <li class="entry" id={entry.id}>
+            <div class="entry__meta">
+              <a class="entry__version" href={`#${entry.id}`}>
+                {entry.unreleased ? 'Unreleased' : entry.version}
+              </a>
+              {entry.date && <time datetime={entry.date}>{formatDate(entry.date)}</time>}
+              {!entry.unreleased && (
+                <a class="entry__release" href={`${REPO_URL}/releases/tag/v${entry.version}`}>
+                  Release <Icon name="externalLink" size={14} />
+                </a>
+              )}
+            </div>
+            <div class="prose entry__body" set:html={entry.html} />
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  h1 {
+    font-size: clamp(2.2rem, 1.5rem + 3vw, 3.4rem);
+  }
+  .empty {
+    color: var(--z-text-muted);
+  }
+  .timeline {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .entry {
+    display: grid;
+    gap: 1rem;
+    padding-block: 2.5rem;
+    border-top: 1px solid var(--z-border);
+    scroll-margin-top: 5rem;
+  }
+  @media (min-width: 52rem) {
+    .entry {
+      grid-template-columns: 13rem 1fr;
+      gap: 2.5rem;
+    }
+  }
+  .entry__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    align-content: start;
+    align-items: baseline;
+  }
+  @media (min-width: 52rem) {
+    .entry__meta {
+      position: sticky;
+      top: 5.5rem;
+      flex-direction: column;
+    }
+  }
+  .entry__version {
+    color: var(--z-text);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .entry__meta time {
+    color: var(--z-text-muted);
+    font-size: 0.9rem;
+  }
+  .entry__release {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+  .entry__body :global(h3:first-child) {
+    margin-top: 0;
+  }
+  .entry__body :global(h3) {
+    color: var(--z-primary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

@@ -1,0 +1,92 @@
+---
+import logo from '@brand/icon.svg';
+import { href } from '@/lib/href';
+import { AUTHOR, ISSUES_URL, NAME, RELEASES_URL, REPO_URL, TAGLINE } from '@/lib/site';
+import { legalLinks } from './legalLinks';
+
+const columns = [
+  {
+    title: 'Product',
+    links: [
+      { label: 'Features', url: href('/#features') },
+      { label: 'Download', url: href('/download/') },
+      { label: 'Changelog', url: href('/changelog/') },
+      { label: 'All releases', url: RELEASES_URL },
+    ],
+  },
+  {
+    title: 'Documentation',
+    links: [
+      { label: 'Introduction', url: href('/docs/') },
+      { label: 'Installation', url: href('/docs/installation/') },
+      { label: 'Installing 7-Zip', url: href('/docs/installing-7zip/') },
+      { label: 'Troubleshooting', url: href('/docs/reference/troubleshooting/') },
+    ],
+  },
+  {
+    title: 'Project',
+    links: [
+      { label: 'Source code', url: REPO_URL },
+      { label: 'Report an issue', url: ISSUES_URL },
+      { label: 'Contributing', url: href('/docs/project/contributing/') },
+      { label: 'Security', url: href('/docs/reference/security/') },
+    ],
+  },
+];
+const year = new Date().getUTCFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <img src={logo.src} alt="" width="36" height="36" />
+      <div>
+        <strong>{NAME}</strong>
+        <p>{TAGLINE}</p>
+      </div>
+    </div>
+    {columns.map((column) => (
+      <div class="site-footer__column">
+        <h2>{column.title}</h2>
+        <ul>
+          {column.links.map((link) => (
+            <li>
+              <a href={link.url}>{link.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </div>
+  <div class="site-footer__legal">
+    <nav class="site-footer__legal-links" aria-label="Legal">
+      {legalLinks().map((link) => <a href={link.url}>{link.label}</a>)}
+    </nav>
+    <p>
+      © {year} {AUTHOR}. {NAME} is open source under the <a href={`${REPO_URL}/blob/main/LICENSE`}
+        >MIT licence</a
+      >.
+    </p>
+    <p>
+      {NAME} is an independent project. It is not affiliated with, endorsed by or sponsored by 7-Zip or
+      Igor Pavlov, and it does not include 7-Zip. “7-Zip” is the name of Igor Pavlov’s archiver.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer__legal-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.25rem;
+    margin-bottom: 0.5rem;
+  }
+  .site-footer__legal-links a {
+    color: var(--z-text-muted);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .site-footer__legal-links a:hover {
+    color: var(--z-text);
+  }
+</style>

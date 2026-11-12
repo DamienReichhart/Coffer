@@ -1,0 +1,30 @@
+---
+title: Checksums
+description: Compute CRC and SHA hashes of files and compare them with an expected value.
+---
+
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+The **Checksums** screen computes hashes of files with 7-Zip’s `h` command.
+
+<DocScreenshot name="checksums" alt="The checksums screen" />
+
+1. Add one or more files (or drop them onto the screen).
+2. Pick the algorithms: **CRC32**, **CRC64**, **SHA-1**, **SHA-256** and **BLAKE2sp**.
+3. Click **Compute**.
+
+Each file gets one row per algorithm with a copy button.
+
+## Comparing with an expected value
+
+Paste the value a download page gives you into **Compare with**: matching results are marked, and a
+mismatch is flagged in red. Letter case doesn’t matter.
+
+## Which algorithm?
+
+- **SHA-256** — what download pages usually publish; use it to check a file is the one intended.
+- **CRC32 / CRC64** — very fast, catch accidental corruption, but are not secure against tampering.
+- **SHA-1** — legacy; still published by some sites.
+- **BLAKE2sp** — fast and cryptographically strong.
+
+The algorithms available come from your 7-Zip; very old versions may lack some of them.

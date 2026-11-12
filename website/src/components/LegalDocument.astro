@@ -1,0 +1,31 @@
+---
+import SiteLayout from '@/layouts/SiteLayout.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  updated: string;
+}
+const { title, description, updated } = Astro.props;
+---
+
+<SiteLayout title={title} description={description}>
+  <section class="section">
+    <div class="container">
+      <div class="section-heading">
+        <span class="eyebrow">Legal</span>
+        <h1>{title.split(' — ')[0]}</h1>
+        <p>Last updated {updated}</p>
+      </div>
+      <article class="prose">
+        <slot />
+      </article>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  h1 {
+    font-size: clamp(2rem, 1.5rem + 2.4vw, 3rem);
+  }
+</style>

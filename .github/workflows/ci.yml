@@ -1,0 +1,201 @@
+name: CI
+
+# Every push and pull request, on every branch. `main` runs these same checks
+# inside the Release workflow (workflow_call), so a release is only published
+# when CI passes on the exact commit being released.
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  merge_group:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # github.workflow is the caller's name when called, so a release never cancels CI.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: short
+
+jobs:
+  # Formatting, lints and docs: platform independent, so once.
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: lint
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Documentation builds without warnings
+        run: cargo doc --workspace --no-deps --locked
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  # Every platform 7zip-GUI ships for, against a real 7-Zip, so code behind
+  # cfg(windows) / cfg(target_os = "macos") is compiled, linted and tested.
+  test:
+    name: test (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64, os: ubuntu-latest }
+          - { name: linux-arm64, os: ubuntu-24.04-arm }
+          - { name: windows-x64, os: windows-latest }
+          - { name: macos-arm64, os: macos-latest }
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: test-${{ matrix.name }}
+      - name: Install 7-Zip
+        run: |
+          case "$RUNNER_OS" in
+            Linux)   sudo apt-get update && sudo apt-get install -y --no-install-recommends 7zip ;;
+            macOS)   brew install sevenzip ;;
+            Windows) [ -x "/c/Program Files/7-Zip/7z.exe" ] || choco install 7zip --no-progress -y ;;
+          esac
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - name: Test (the live 7-Zip tests are required here)
+        run: cargo test --workspace --locked
+        env:
+          SEVENZIP_REQUIRED: '1'
+
+  # The oldest Rust the crates declare (rust-version) still builds them.
+  msrv:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read rust-version
+        id: msrv
+        run: echo "version=$(grep -m1 '^rust-version' Cargo.toml | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
+      - run: rustup toolchain install "${{ steps.msrv.outputs.version }}" --profile minimal
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: msrv
+      - run: cargo +${{ steps.msrv.outputs.version }} check --workspace --all-targets --locked
+
+  # Licences, security advisories, banned and duplicate crates, sources (deny.toml).
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+          arguments: --all-features
+
+  # The workflows themselves.
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: actionlint
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -color
+      - name: Shell scripts
+        run: shellcheck --severity=warning scripts/*.sh scripts/ci/*.sh
+
+  # The Linux packages are built and installed on every change, so packaging
+  # breaks here rather than during a release.
+  package-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: package-smoke
+      - name: Install the packaging tools
+        run: scripts/ci/install-linux-packaging-tools.sh x86_64
+      - run: cargo build --release --locked --target x86_64-unknown-linux-gnu -p sevenzip-gui
+      - run: cargo xtask package --target x86_64-unknown-linux-gnu --out dist
+      - name: Install the deb and run it
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ./dist/*.deb
+          7zip-gui --version
+          test "$(cat /usr/lib/7zip-gui/install-kind)" = deb
+          desktop-file-validate /usr/share/applications/io.github.damienreichhart.SevenZipGui.desktop
+          appstreamcli validate --no-net --explain /usr/share/metainfo/io.github.damienreichhart.SevenZipGui.metainfo.xml || true
+          sudo apt-get remove -y 7zip-gui
+      - name: Inspect the rpm and run the AppImage
+        run: |
+          rpm -qip dist/*.rpm
+          rpm -qlp dist/*.rpm | grep -q /usr/lib/7zip-gui/install-kind
+          chmod +x dist/*.AppImage
+          APPIMAGE_EXTRACT_AND_RUN=1 ./dist/*.AppImage --version
+
+  # The website: lint, unit tests, real screenshots from the app, and a full
+  # build (types, internal links).
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: website/.nvmrc
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: screenshots
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: Screenshots from the real views
+        run: npm run screenshots
+      - name: Release data (read-only, no downloads)
+        run: node scripts/sync-releases.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - run: npm run build
+        env:
+          ASTRO_TELEMETRY_DISABLED: '1'
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: website/src/assets/screenshots
+          retention-days: 14
+
+  # One status to require in branch protection.
+  ci-success:
+    if: always()
+    needs: [lint, test, msrv, dependencies, workflows, package-smoke, website]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every CI job passed
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = true ]; then
+            echo "::error::A CI job failed or was cancelled."
+            exit 1
+          fi

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.damienreichhart.SevenZipGui</id>
+  <name>7zip-GUI</name>
+  <summary>A modern desktop interface for 7-Zip</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.damienreichhart">
+    <name>Damien Reichhart</name>
+  </developer>
+  <description>
+    <p>
+      7zip-GUI opens, creates, extracts, tests and checksums archives with the 7-Zip
+      command-line program installed on your computer. It is fast, native and keyboard friendly.
+    </p>
+    <ul>
+      <li>Browse 7z, ZIP, RAR, TAR, ISO and dozens of other formats</li>
+      <li>Create 7z, ZIP and TAR archives with AES-256 encryption and split volumes</li>
+      <li>Live progress, cancellation and logs for every operation</li>
+      <li>CRC, SHA-1, SHA-256 and more checksums, with verification</li>
+    </ul>
+    <p>7-Zip is not included: install it from your distribution (the 7zip package).</p>
+  </description>
+  <launchable type="desktop-id">io.github.damienreichhart.SevenZipGui.desktop</launchable>
+  <url type="homepage">https://damienreichhart.github.io/7zip-GUI/</url>
+  <url type="bugtracker">https://github.com/DamienReichhart/7zip-GUI/issues</url>
+  <url type="vcs-browser">https://github.com/DamienReichhart/7zip-GUI</url>
+  <url type="help">https://damienreichhart.github.io/7zip-GUI/docs/</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Browsing an archive</caption>
+      <image>https://damienreichhart.github.io/7zip-GUI/screenshots/browse.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <provides>
+    <binary>7zip-gui</binary>
+  </provides>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>

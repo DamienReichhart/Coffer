@@ -1,0 +1,70 @@
+---
+/* How to check a download: checksum, minisign signature, build provenance. */
+import Command from '@/components/Command.astro';
+import { href } from '@/lib/href';
+import { minisignKey } from '@/lib/packages';
+import { REPOSITORY } from '@/lib/site';
+
+interface Props {
+  example: string;
+}
+const { example } = Astro.props;
+---
+
+<section class="verify" aria-labelledby="verify-title">
+  <h2 id="verify-title">Verify your download</h2>
+  <p>
+    The app verifies every update by itself. To check an installer you downloaded by hand, use any
+    of these, from the folder you saved it in.
+  </p>
+  <div class="verify__grid">
+    <div class="card verify__card">
+      <h3>Checksum</h3>
+      <p>Compare with <code>SHA256SUMS.txt</code> from the same release.</p>
+      <Command command="sha256sum --ignore-missing -c SHA256SUMS.txt" />
+    </div>
+    <div class="card verify__card">
+      <h3>Signature</h3>
+      <p>With <a href="https://jedisct1.github.io/minisign/">minisign</a> and the release key.</p>
+      <Command command={`minisign -Vm ${example} -P ${minisignKey ?? '<public key>'}`} />
+    </div>
+    <div class="card verify__card">
+      <h3>Build provenance</h3>
+      <p>Proves the file was built by this repository’s release workflow.</p>
+      <Command command={`gh attestation verify ${example} --repo ${REPOSITORY}`} />
+    </div>
+  </div>
+  <p class="verify__more"><a href={href('/docs/reference/verifying/')}>Verifying downloads in detail</a></p>
+</section>
+
+<style>
+  .verify {
+    display: grid;
+    gap: 1rem;
+  }
+  .verify h2 {
+    font-size: 1.5rem;
+  }
+  .verify > p {
+    color: var(--z-text-muted);
+  }
+  .verify__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1rem;
+  }
+  .verify__card {
+    display: grid;
+    gap: 0.6rem;
+    align-content: start;
+    min-width: 0;
+    padding: 1.25rem;
+  }
+  .verify__card h3 {
+    font-size: 1rem;
+  }
+  .verify__card p {
+    color: var(--z-text-muted);
+    font-size: 0.9rem;
+  }
+</style>

@@ -1,0 +1,52 @@
+---
+/*
+ * The main download button. Without JavaScript (or for an unknown platform) it
+ * goes to the download page; with it, it points at the installer for the
+ * visitor's OS and architecture from the latest release.
+ */
+import { href } from '@/lib/href';
+import { latest, recommended } from '@/lib/releases';
+import Icon from './Icon.astro';
+
+interface Props {
+  size?: 'small' | 'large';
+}
+const { size = 'large' } = Astro.props;
+const targets = recommended(latest);
+---
+
+<a
+  class:list={['button', 'button--primary', `button--${size}`]}
+  href={href('/download/')}
+  data-download-link
+  data-targets={JSON.stringify(targets)}
+>
+  <Icon name="download" />
+  <span data-download-label>Download {latest ? latest.version : ''}</span>
+</a>
+
+<script>
+  import { detectPlatform, platformKey } from '@/lib/platform';
+
+  const NAMES: Record<string, string> = {
+    'windows-x64': 'Windows',
+    'windows-arm64': 'Windows on ARM',
+    'macos-arm64': 'macOS',
+    'macos-x64': 'macOS (Intel)',
+    'linux-x64': 'Linux',
+    'linux-arm64': 'Linux (ARM64)',
+  };
+
+  void detectPlatform().then((platform) => {
+    const key = platformKey(platform);
+    if (!key) return;
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-download-link]')) {
+      const targets = JSON.parse(link.dataset.targets ?? '{}') as Record<string, string>;
+      const label = link.querySelector<HTMLElement>('[data-download-label]');
+      if (label && NAMES[key]) label.textContent = `Download for ${NAMES[key]}`;
+      // An undetected Mac could be Intel or Apple silicon: let the download page ask.
+      const url = targets[key];
+      if (url && !(platform.os === 'macos' && !platform.arch)) link.href = url;
+    }
+  });
+</script>

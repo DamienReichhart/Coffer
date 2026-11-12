@@ -1,0 +1,67 @@
+---
+/* APT and DNF/zypper repositories: shown only when the repository key exists (lib/packages.ts). */
+import Command from '@/components/Command.astro';
+import { PACKAGE } from '@/lib/packages';
+
+interface Props {
+  root: string;
+}
+const { root } = Astro.props;
+---
+
+<section class="repos" aria-labelledby="repos-title">
+  <h2 id="repos-title">Linux package repositories</h2>
+  <p>
+    Install from a repository and your package manager keeps 7zip-GUI up to date with the rest of
+    your system. Packages and repository metadata are signed with the key at{' '}
+    <a href={`${root}/7zip-gui.asc`}>7zip-gui.asc</a>.
+  </p>
+  <div class="repos__grid">
+    <div class="card repos__card">
+      <h3>Debian, Ubuntu and derivatives (apt)</h3>
+      <Command command={`curl -fsSL ${root}/7zip-gui.asc | sudo gpg --dearmor -o /usr/share/keyrings/7zip-gui.gpg`} />
+      <Command command={`echo "deb [signed-by=/usr/share/keyrings/7zip-gui.gpg] ${root}/ apt/" | sudo tee /etc/apt/sources.list.d/7zip-gui.list`} />
+      <Command command={`sudo apt update && sudo apt install ${PACKAGE}`} />
+    </div>
+    <div class="card repos__card">
+      <h3>Fedora, RHEL and derivatives (dnf)</h3>
+      <Command command={`sudo curl -fsSLo /etc/yum.repos.d/7zip-gui.repo ${root}/7zip-gui.repo`} />
+      <Command command={`sudo dnf install ${PACKAGE}`} />
+      <h3>openSUSE (zypper)</h3>
+      <Command command={`sudo zypper addrepo ${root}/7zip-gui.repo`} />
+      <Command command={`sudo zypper install ${PACKAGE}`} />
+    </div>
+  </div>
+</section>
+
+<style>
+  .repos {
+    display: grid;
+    gap: 1rem;
+  }
+  .repos h2 {
+    font-size: 1.5rem;
+  }
+  .repos > p {
+    max-width: 48rem;
+    color: var(--z-text-muted);
+  }
+  .repos__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+    gap: 1rem;
+  }
+  .repos__card {
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+    min-width: 0;
+    padding: 1.25rem;
+  }
+  .repos__card h3 {
+    font-size: 1rem;
+  }
+  .repos__card h3:not(:first-child) {
+    margin-top: 0.75rem;
+  }
+</style>

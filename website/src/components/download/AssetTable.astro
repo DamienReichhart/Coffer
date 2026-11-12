@@ -1,0 +1,123 @@
+---
+/* Every installer of a release, grouped by OS. */
+import Icon from '@/components/Icon.astro';
+import { formatBytes } from '@/lib/format';
+import { ARCH_LABEL, byOs, KIND_LABEL, OS_LABEL, type Release } from '@/lib/releases';
+
+interface Props {
+  release: Release;
+  /** Mark rows for the platform script to highlight. */
+  highlight?: boolean;
+}
+const { release, highlight = false } = Astro.props;
+const icon = { windows: 'windows', macos: 'apple', linux: 'linux' } as const;
+---
+
+<div class="assets">
+  {byOs(release).map(({ os, assets }) => (
+    <section class="card assets__os" aria-label={OS_LABEL[os]} data-os={highlight ? os : undefined}>
+      <h3>
+        <Icon name={icon[os]} size={22} />
+        {OS_LABEL[os]}
+      </h3>
+      <ul>
+        {assets.map((a) => (
+          <li class="asset" data-platform={highlight ? `${a.os}-${a.arch}` : undefined}>
+            <div class="asset__what">
+              <strong>{KIND_LABEL[a.kind]}</strong>
+              <span>
+                {ARCH_LABEL[a.arch]} · {formatBytes(a.size)}
+                {a.signatureUrl && (
+                  <>
+                    {' · '}
+                    <a href={a.signatureUrl}>signature</a>
+                  </>
+                )}
+              </span>
+              {a.sha256 && (
+                <code class="asset__sha" title={`SHA-256 ${a.sha256}`}>
+                  sha256 {a.sha256.slice(0, 16)}…
+                </code>
+              )}
+            </div>
+            <a class="button button--secondary button--small" href={a.url} download aria-label={`Download ${a.name}`}>
+              <Icon name="download" size={16} />
+              Download
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</div>
+
+<style>
+  .assets {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+  .assets__os {
+    padding: 1.25rem;
+    transition: border-color 0.2s ease;
+  }
+  .assets__os.is-detected {
+    border-color: var(--z-primary);
+    box-shadow: 0 0 0 3px var(--z-primary-soft);
+  }
+  .assets__os h3 {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+  }
+  ul {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .asset {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 0.8rem;
+    border-top: 1px solid var(--z-border);
+  }
+  .asset.is-detected strong::after {
+    content: 'Recommended';
+    margin-inline-start: 0.5rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    background: var(--z-primary-soft);
+    color: var(--z-primary);
+    font-size: 0.7rem;
+    font-weight: 600;
+    vertical-align: 0.1em;
+  }
+  .asset__what {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .asset__what strong {
+    font-size: 0.95rem;
+  }
+  .asset__what span {
+    color: var(--z-text-muted);
+    font-size: 0.85rem;
+  }
+  .asset__sha {
+    overflow: hidden;
+    color: var(--z-text-faint);
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+import Icon, { type IconName } from '@/components/Icon.astro';
+import { href } from '@/lib/href';
+
+const points: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'eyeOff',
+    title: 'No telemetry, no account',
+    text: 'Nothing about you or your files ever leaves your computer. There is no sign-in, no analytics and no crash reporter.',
+  },
+  {
+    icon: 'refresh',
+    title: 'One request, and you can turn it off',
+    text: 'The only thing the app fetches is a small file on this website that says which version is the latest. Switch it off in Settings.',
+  },
+  {
+    icon: 'shieldCheck',
+    title: 'Signed, checked, built in the open',
+    text: 'Every installer is built by GitHub Actions from the public source, with SHA-256 checksums, minisign signatures and build provenance.',
+  },
+];
+---
+
+<section class="section section--raised" id="privacy">
+  <div class="container">
+    <div class="section-heading section-heading--center" data-reveal>
+      <span class="eyebrow">Privacy</span>
+      <h2>Your archives are your business</h2>
+    </div>
+    <ul class="privacy" data-reveal>
+      {points.map((p) => (
+        <li>
+          <span class="feature-icon"><Icon name={p.icon} /></span>
+          <h3>{p.title}</h3>
+          <p>{p.text}</p>
+        </li>
+      ))}
+    </ul>
+    <p class="privacy__more">
+      <a href={href('/docs/reference/security/')}>Security and privacy in detail</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .privacy {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    gap: 2.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .privacy li {
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+  }
+  .privacy h3 {
+    font-size: 1.1rem;
+  }
+  .privacy p {
+    color: var(--z-text-muted);
+  }
+  .privacy__more {
+    margin-top: 2.5rem;
+    text-align: center;
+  }
+</style>

@@ -1,0 +1,35 @@
+name: Audit
+
+# New advisories appear without any change to this repository: check the
+# Rust and npm dependency trees every week, and on demand.
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories
+
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: website/.nvmrc
+      # Only what ships to visitors matters; build tools run in CI only.
+      - run: npm audit --omit=dev --audit-level=high

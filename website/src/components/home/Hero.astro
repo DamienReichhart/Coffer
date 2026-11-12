@@ -1,0 +1,107 @@
+---
+import DownloadButton from '@/components/DownloadButton.astro';
+import Icon from '@/components/Icon.astro';
+import Screenshot from '@/components/Screenshot.astro';
+import { href } from '@/lib/href';
+import { latest } from '@/lib/releases';
+---
+
+<section class="hero">
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="container hero__inner">
+    {
+      latest ? (
+        <a class="pill" href={href('/changelog/')}>
+          <span class="pill__tag">New</span>
+          Version {latest.version} is out
+          <Icon name="arrowRight" size={14} />
+        </a>
+      ) : (
+        <a class="pill" href={href('/docs/')}>
+          <span class="pill__tag">Open source</span>
+          Free for everyone, on every desktop
+          <Icon name="arrowRight" size={14} />
+        </a>
+      )
+    }
+    <h1>All the power of 7-Zip.<br />None of the command line.</h1>
+    <p class="hero__lead">
+      7zip-GUI is a fast, native desktop app for the 7-Zip you already have. Browse archives without
+      unpacking them, extract exactly what you need and build encrypted, split or ultra-compressed
+      archives — on Windows, macOS and Linux.
+    </p>
+    <div class="hero__actions">
+      <DownloadButton />
+      <a class="button button--secondary button--large" href={href('/docs/')}>
+        <Icon name="book" />
+        Read the docs
+      </a>
+    </div>
+    <p class="hero__meta">
+      {latest ? `Version ${latest.version} · ` : ''}Windows, macOS and Linux · x64 and ARM64 ·{' '}
+      <a href={href('/download/')}>All downloads</a>
+    </p>
+    <div class="hero__shot">
+      <Screenshot
+        name="browse"
+        alt="7zip-GUI browsing the contents of an archive, with its folders, sizes and compression ratio"
+        sizes="(min-width: 76rem) 70rem, calc(100vw - 2.5rem)"
+        eager
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: 4.5rem 3rem;
+  }
+  @media (min-width: 64rem) {
+    .hero {
+      padding-block: 6rem 4rem;
+    }
+  }
+  .hero__glow {
+    position: absolute;
+    inset: -20rem 0 auto;
+    height: 46rem;
+    background: radial-gradient(ellipse 50% 50% at 50% 50%, var(--z-glow), transparent 70%);
+    pointer-events: none;
+  }
+  .hero__inner {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  h1 {
+    max-width: 60rem;
+    font-size: clamp(2.3rem, 1.3rem + 4vw, 4.1rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+  }
+  .hero__lead {
+    max-width: 42rem;
+    color: var(--z-text-muted);
+    font-size: clamp(1.05rem, 1rem + 0.3vw, 1.2rem);
+  }
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .hero__meta {
+    color: var(--z-text-faint);
+    font-size: 0.875rem;
+  }
+  .hero__shot {
+    width: 100%;
+    max-width: 70rem;
+    margin-top: 2.5rem;
+  }
+</style>

@@ -1,0 +1,121 @@
+---
+/* "Uses the 7-Zip you install — never bundled": what the app needs, per OS. */
+import Command from '@/components/Command.astro';
+import Icon, { type IconName } from '@/components/Icon.astro';
+import { href } from '@/lib/href';
+
+const platforms: { icon: IconName; name: string; commands: string[]; note: string }[] = [
+  {
+    icon: 'windows',
+    name: 'Windows',
+    commands: ['winget install 7zip.7zip'],
+    note: 'Or the installer from 7-zip.org. Found in Program Files automatically.',
+  },
+  {
+    icon: 'apple',
+    name: 'macOS',
+    commands: ['brew install sevenzip'],
+    note: 'Installs 7-Zip’s own 7zz for Apple silicon and Intel.',
+  },
+  {
+    icon: 'linux',
+    name: 'Linux',
+    commands: ['sudo apt install 7zip', 'sudo dnf install 7zip'],
+    note: 'On older releases: p7zip-full (Debian, Ubuntu) or p7zip p7zip-plugins (Fedora).',
+  },
+];
+---
+
+<section class="section section--raised" id="7-zip">
+  <div class="container sevenzip">
+    <div class="section-heading" data-reveal>
+      <span class="eyebrow">How it works</span>
+      <h2>It drives the 7-Zip you install. It never ships one.</h2>
+      <p>
+        7zip-GUI is a front end: every byte is compressed and extracted by the official 7-Zip
+        command-line tool on your computer. It finds <code>7zz</code>, <code>7z</code> or{' '}
+        <code>7za</code> on its own, tells you plainly when it can’t, and lets you point it at any
+        copy you like.
+      </p>
+      <ul class="sevenzip__points">
+        <li><Icon name="check" size={18} /> Same results and formats as 7-Zip itself</li>
+        <li><Icon name="check" size={18} /> Update 7-Zip whenever you want, independently</li>
+        <li><Icon name="check" size={18} /> No bundled binaries, no surprises in your PATH</li>
+      </ul>
+      <a class="sevenzip__link" href={href('/docs/installing-7zip/')}>
+        Installing 7-Zip, step by step <Icon name="arrowRight" size={16} />
+      </a>
+    </div>
+    <div class="sevenzip__cards" data-reveal>
+      {platforms.map((p) => (
+        <div class="card sevenzip__card">
+          <h3>
+            <Icon name={p.icon} />
+            {p.name}
+          </h3>
+          {p.commands.map((c) => <Command command={c} />)}
+          <p>{p.note}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .sevenzip {
+    display: grid;
+    gap: 2.5rem;
+    align-items: center;
+  }
+  @media (min-width: 60rem) {
+    .sevenzip {
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+    }
+  }
+  .sevenzip .section-heading {
+    margin-bottom: 0;
+  }
+  .sevenzip__points {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sevenzip__points li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    color: var(--z-text);
+  }
+  .sevenzip__points :global(svg) {
+    color: var(--z-success);
+  }
+  .sevenzip__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .sevenzip__cards {
+    display: grid;
+    gap: 1rem;
+  }
+  .sevenzip__card {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1.25rem;
+  }
+  .sevenzip__card h3 {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    font-size: 1rem;
+  }
+  .sevenzip__card p {
+    color: var(--z-text-faint);
+    font-size: 0.85rem;
+  }
+</style>

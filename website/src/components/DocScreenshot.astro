@@ -1,0 +1,16 @@
+---
+/* A screenshot in the docs, framed and captioned. */
+import Screenshot, { type ScreenshotName } from './Screenshot.astro';
+
+interface Props {
+  name: ScreenshotName;
+  alt: string;
+  caption?: string;
+}
+const { name, alt, caption } = Astro.props;
+---
+
+<figure class="screenshot not-content">
+  <Screenshot name={name} alt={alt} sizes="(min-width: 72rem) 48rem, calc(100vw - 3rem)" />
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>

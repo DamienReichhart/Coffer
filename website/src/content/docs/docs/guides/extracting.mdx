@@ -1,0 +1,53 @@
+---
+title: Extracting
+description: Extract all or part of an archive, where you want, the way you want.
+---
+
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+Click **Extract** in an open archive, choose **Extract archive** on the welcome screen, or run
+`7zip-gui --extract <archive>`. The extract dialog sets everything up:
+
+<DocScreenshot name="extract" alt="The extract dialog" />
+
+## What to extract
+
+- **Everything**, or
+- **Only the selected items** — available when you selected entries in the archive view. Folders
+  are extracted with everything they contain.
+
+## Destination
+
+By default 7zip-GUI extracts into a **new folder named after the archive**, next to it
+(`photos.7z` → `photos/`), so an archive with many top-level files never spills into the folder it
+sits in. Choose any other folder with **Browse**. The default can be changed in
+[Settings](/docs/reference/settings/).
+
+## Keep folder structure
+
+On (the default), files keep the folders they are in inside the archive (7-Zip’s `x` command).
+Off, every file lands directly in the destination (7-Zip’s `e` command); files with the same name in
+different folders then follow the overwrite rule below.
+
+## When a file already exists
+
+| Option | 7-Zip switch | What happens |
+| --- | --- | --- |
+| Overwrite | `-aoa` | The extracted file replaces the existing one. |
+| Skip | `-aos` | The existing file is kept; that entry is not extracted. |
+| Rename extracted | `-aou` | The extracted file gets a new name, such as `report_1.pdf`. |
+| Rename existing | `-aot` | The existing file is renamed and the extracted one takes its name. |
+
+## Password
+
+Enter it in the dialog for an encrypted archive, or leave it empty to be asked when needed.
+
+## After extracting
+
+Turn on **Open the folder when done** to have your file manager open the destination. The job
+appears in [Activity](/docs/guides/activity/) with its progress, and you can cancel it there.
+
+:::caution
+Cancelling stops 7-Zip immediately: files already extracted stay, and the file being written may be
+incomplete.
+:::

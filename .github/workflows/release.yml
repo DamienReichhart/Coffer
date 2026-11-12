@@ -1,0 +1,220 @@
+name: Release
+
+# Every push to main releases the version in Cargo.toml ([workspace.package]).
+#
+# 1. plan       — fails in seconds, before anything is built, unless the version
+#                 is new (no tag, newer than every release), has a dated
+#                 CHANGELOG.md section, matches Cargo.lock, and the signing key
+#                 is configured. Forgot to bump? Nothing is built or published.
+# 2. ci + build — the full CI suite and the 6 platform builds run in parallel.
+# 3. publish    — only when CI and every build passed: checksums, build
+#                 provenance, signatures and the GitHub release, in one step.
+# 4. The Pages workflow then rebuilds the website with the new version, its
+#    installers and the update manifest the apps read.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # retry a failed release without a new push
+
+# One release at a time, never cancelled halfway; a newer push waits its turn.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      tag: ${{ steps.plan.outputs.tag }}
+      prerelease: ${{ steps.plan.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # every tag, to refuse a version that already exists
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: xtask
+      - name: Check the version and write the release notes
+        id: plan
+        run: cargo xtask release-plan --notes "$RUNNER_TEMP/notes.md"
+      - name: Check the update signing key
+        run: cargo xtask check-signing
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+          UPDATE_SIGNING_PASSWORD: ${{ secrets.UPDATE_SIGNING_PASSWORD }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}/notes.md
+          retention-days: 7
+      - name: Summary
+        env:
+          TAG: ${{ steps.plan.outputs.tag }}
+        run: |
+          { echo "# Releasing $TAG"; echo; cat "$RUNNER_TEMP/notes.md"; } >> "$GITHUB_STEP_SUMMARY"
+
+  ci:
+    needs: plan
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: build (${{ matrix.name }})
+    needs: plan
+    strategy:
+      fail-fast: false # finish the other platforms, so only the failed one needs a re-run
+      matrix:
+        include:
+          # Ubuntu 22.04's glibc 2.35 keeps the Linux builds running on older distributions.
+          - { name: linux-x64, runner: ubuntu-22.04, target: x86_64-unknown-linux-gnu, arch: x86_64 }
+          - { name: linux-arm64, runner: ubuntu-22.04-arm, target: aarch64-unknown-linux-gnu, arch: aarch64 }
+          - { name: windows-x64, runner: windows-latest, target: x86_64-pc-windows-msvc }
+          # Cross-compiled with the ARM64 MSVC tools of the x64 image.
+          - { name: windows-arm64, runner: windows-latest, target: aarch64-pc-windows-msvc }
+          - { name: macos-arm64, runner: macos-latest, target: aarch64-apple-darwin }
+          # Cross-compiled on Apple silicon with the universal SDK.
+          - { name: macos-x64, runner: macos-latest, target: x86_64-apple-darwin }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    env:
+      TARGET: ${{ matrix.target }}
+      VERSION: ${{ needs.plan.outputs.version }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the toolchain and target
+        run: |
+          rustup toolchain install
+          rustup target add "$TARGET"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
+
+      - name: Install the Linux packaging tools
+        if: runner.os == 'Linux'
+        run: scripts/ci/install-linux-packaging-tools.sh "${{ matrix.arch }}"
+      - name: Install WiX
+        if: runner.os == 'Windows'
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add --global WixToolset.UI.wixext/5.0.2
+
+      - name: Build
+        run: cargo build --release --locked --target "$TARGET" -p sevenzip-gui
+        env:
+          # Release binaries refuse to run without the key; fail here, not in users' hands.
+          SEVENZIP_GUI_REQUIRE_UPDATE_KEY: '1'
+
+      - name: Import the Apple signing certificate
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: scripts/ci/macos-keychain.sh
+
+      - name: Package
+        run: cargo xtask package --target "$TARGET" --out dist
+        env:
+          # macOS: signed and notarized when these secrets are set; otherwise
+          # ad-hoc signed, and Gatekeeper asks users to confirm the first launch.
+          APPLE_SIGNING_IDENTITY: ${{ runner.os == 'macOS' && secrets.APPLE_SIGNING_IDENTITY || '' }}
+          APPLE_ID: ${{ runner.os == 'macOS' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
+
+      - name: Sign the RPM with the package repository key
+        if: runner.os == 'Linux'
+        env:
+          KEY: ${{ secrets.PACKAGES_GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PACKAGES_GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::warning::PACKAGES_GPG_PRIVATE_KEY is not set: the RPM is unsigned and no package repository is published (scripts/setup-signing.sh)."
+            exit 0
+          fi
+          scripts/ci/import-gpg-key.sh
+          fingerprint="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')"
+          rpm --define "_gpg_name $fingerprint" \
+              --define "_gpg_sign_cmd_extra_args --pinentry-mode loopback --passphrase-file $RUNNER_TEMP/passphrase" \
+              --addsign dist/*.rpm
+          rpm -qpi dist/*.rpm | grep -i signature
+
+      - name: Sign every installer for the updater (minisign)
+        run: cargo xtask sign --version "$VERSION" dist/*
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+          UPDATE_SIGNING_PASSWORD: ${{ secrets.UPDATE_SIGNING_PASSWORD }}
+
+      - run: ls -l dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: installers-${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0 # installers are already compressed
+
+  publish:
+    needs: [plan, ci, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.plan.outputs.tag }}
+      VERSION: ${{ needs.plan.outputs.version }}
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: installers-*
+          path: installers
+          merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}
+      - name: Every expected installer is there
+        working-directory: installers
+        run: |
+          missing=0
+          for os_arch in linux-x64 linux-arm64; do
+            for ext in deb rpm AppImage; do f="7zip-GUI-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
+          done
+          for os_arch in windows-x64 windows-arm64; do
+            for ext in msi zip; do f="7zip-GUI-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
+          done
+          for os_arch in macos-x64 macos-arm64; do
+            f="7zip-GUI-$VERSION-$os_arch.dmg"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }
+          done
+          exit "$missing"
+      - name: Checksums
+        working-directory: installers
+        run: sha256sum -- $(ls | grep -v '\.minisig$') | tee SHA256SUMS.txt
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: installers/*
+      - name: Publish the release
+        run: |
+          flags=()
+          [ "$PRERELEASE" = true ] && flags+=(--prerelease --latest=false)
+          # Creates the tag on the commit that was built, and publishes once every file is uploaded.
+          gh release create "$TAG" installers/* \
+            --target "$GITHUB_SHA" --title "7zip-GUI $VERSION" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+          echo "Published [$TAG]($(gh release view "$TAG" --json url --jq .url))" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,41 @@
+---
+title: Activity and cancelling
+description: Follow running jobs, cancel them and read their logs.
+---
+
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+Every extraction, compression, test, deletion and checksum runs as a **job**, listed in
+**Activity**. The sidebar shows how many are running.
+
+<DocScreenshot name="activity" alt="The activity screen" />
+
+## Running jobs
+
+Each running job shows:
+
+- what it does and on which archive,
+- a progress bar and percentage, read live from 7-Zip,
+- the file being processed,
+- how long it has been running.
+
+**Cancel** stops 7-Zip at once. A cancelled extraction leaves the files already written; a cancelled
+compression leaves no finished archive behind.
+
+Jobs run at the same time; 7-Zip itself uses several CPU threads for each.
+
+## Finished jobs
+
+A finished job shows whether it succeeded, how long it took, and actions such as **Show in folder**.
+A failed job shows 7-Zip’s message — *Wrong password*, *Not enough space on disk*, *Can not open the
+file as archive* — and **View log** shows everything 7-Zip printed, which is what to attach when
+you [report a problem](https://github.com/DamienReichhart/7zip-GUI/issues).
+
+**Clear finished** empties the list. A notification appears when a job ends while you are elsewhere
+in the app.
+
+## Exit codes
+
+7zip-GUI reads 7-Zip’s exit code: 0 is success, 1 is a *warning* (for example a file that was locked
+and skipped — the job is marked as completed with warnings), 2 is a fatal error, 7 a command-line
+error, 8 not enough memory, and 255 a job you cancelled.

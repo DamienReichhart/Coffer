@@ -1,0 +1,94 @@
+---
+import { href } from '@/lib/href';
+
+const faqs: { q: string; a: string }[] = [
+  {
+    q: 'Is 7zip-GUI made by the 7-Zip team?',
+    a: 'No. It is an independent, open-source project. It is not affiliated with or endorsed by 7-Zip or Igor Pavlov, and it uses the 7-Zip that you install yourself.',
+  },
+  {
+    q: 'Why doesn’t it include 7-Zip?',
+    a: 'Keeping them separate means you get 7-Zip from its official source and update it on your own schedule, and 7zip-GUI never redistributes someone else’s software. Installing 7-Zip is one command on every platform.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Yes, free and open source under the MIT licence, with no ads, no account and no paid tier.',
+  },
+  {
+    q: 'Which formats can it create and open?',
+    a: 'It creates 7z, ZIP, TAR, GZIP, BZIP2, XZ and WIM archives, and opens everything your 7-Zip can read, including RAR, ISO, DMG, CAB and many more.',
+  },
+  {
+    q: 'How do updates work?',
+    a: 'The app checks this website for a newer version, downloads the installer for your platform from it, verifies its SHA-256 checksum and minisign signature, then runs it. You can turn the check off in Settings.',
+  },
+  {
+    q: 'macOS says the app is damaged or from an unidentified developer.',
+    a: 'Builds that are not notarized by Apple show this warning. The installation guide explains how to open the app safely.',
+  },
+];
+---
+
+<section class="section section--raised" id="faq">
+  <div class="container faq">
+    <div class="section-heading" data-reveal>
+      <span class="eyebrow">FAQ</span>
+      <h2>Questions, answered</h2>
+      <p>More in the <a href={href('/docs/reference/faq/')}>full FAQ</a>.</p>
+    </div>
+    <div class="faq__list" data-reveal>
+      {faqs.map((f) => (
+        <details class="card faq__item">
+          <summary>{f.q}</summary>
+          <p>{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq {
+    display: grid;
+    gap: 2rem;
+  }
+  @media (min-width: 60rem) {
+    .faq {
+      grid-template-columns: 1fr 2fr;
+      gap: 4rem;
+      align-items: start;
+    }
+  }
+  .faq__list {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .faq__item {
+    padding: 0;
+  }
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.1rem 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary::after {
+    content: '+';
+    color: var(--z-text-faint);
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+  .faq__item[open] summary::after {
+    content: '−';
+  }
+  .faq__item p {
+    padding: 0 1.25rem 1.2rem;
+    color: var(--z-text-muted);
+  }
+</style>

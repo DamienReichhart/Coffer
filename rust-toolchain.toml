@@ -1,0 +1,6 @@
+# The exact toolchain every build uses, locally and in CI. Bump deliberately
+# (and check `rust-version` in Cargo.toml stays at or below it).
+[toolchain]
+channel = "1.97.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

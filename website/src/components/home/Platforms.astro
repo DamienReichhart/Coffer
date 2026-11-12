@@ -1,0 +1,71 @@
+---
+import Icon, { type IconName } from '@/components/Icon.astro';
+import { href } from '@/lib/href';
+
+const platforms: { icon: IconName; name: string; detail: string; formats: string }[] = [
+  { icon: 'windows', name: 'Windows', detail: '10 and 11 · x64 and ARM64', formats: 'Installer (.msi) · Portable (.zip)' },
+  { icon: 'apple', name: 'macOS', detail: 'Apple silicon and Intel', formats: 'Disk image (.dmg)' },
+  { icon: 'linux', name: 'Linux', detail: 'x64 and ARM64', formats: '.deb · .rpm · AppImage · apt · dnf' },
+];
+---
+
+<section class="section" id="download">
+  <div class="container">
+    <div class="section-heading section-heading--center" data-reveal>
+      <span class="eyebrow">Download</span>
+      <h2>Native on every desktop</h2>
+      <p>Installers for x64 and ARM that keep the app up to date on their own.</p>
+    </div>
+    <ul class="platforms" data-reveal>
+      {platforms.map((p) => (
+        <li>
+          <a class="card platform" href={href('/download/')}>
+            <Icon name={p.icon} size={28} />
+            <h3>{p.name}</h3>
+            <p>{p.detail}</p>
+            <p class="platform__formats">{p.formats}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .platforms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .platform {
+    display: grid;
+    gap: 0.4rem;
+    height: 100%;
+    padding: 1.75rem;
+    color: var(--z-text);
+    text-decoration: none;
+    transition:
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  .platform:hover {
+    border-color: var(--z-primary);
+    color: var(--z-text);
+    transform: translateY(-2px);
+  }
+  .platform h3 {
+    margin-top: 0.75rem;
+    font-size: 1.2rem;
+  }
+  .platform p {
+    color: var(--z-text-muted);
+    font-size: 0.92rem;
+  }
+  .platform .platform__formats {
+    color: var(--z-text-faint);
+    font-size: 0.85rem;
+  }
+</style>
