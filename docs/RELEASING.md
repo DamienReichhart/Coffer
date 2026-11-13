@@ -8,7 +8,7 @@ manual, and nothing is built when the version was not bumped.
 | Branch | What runs |
 | --- | --- |
 | any branch, any pull request | **CI** (`ci.yml`): fmt, clippy (pedantic, `-D warnings`) and tests on Linux x64/ARM64, Windows and macOS against a real 7-Zip, MSRV, cargo-deny, actionlint/shellcheck, a Linux packaging smoke test (deb installed and run), and the full website build with fresh screenshots. |
-| `main` | **Release** (`release.yml`), which also runs CI on the released commit, then **Pages** (`pages.yml`). |
+| `main` | **Release** (`release.yml`), which also runs CI on the released commit, then **Pages** (`pages.yml`). Pushes that only touch the website, docs or Markdown files skip Release and are deployed by Pages alone. |
 | weekly | **Audit** (`audit.yml`) and **CodeQL** (`codeql.yml`). |
 
 Work on `dev` (or feature branches), open a pull request to `main`, require the
@@ -47,7 +47,7 @@ The Release workflow then:
    in one step (a `-beta.1` style version becomes a prerelease).
 4. **Pages** re-deploys the website: it downloads the installers of the **five
    most recent releases** into `downloads/v<version>/`, rebuilds the download
-   page and changelog, regenerates the APT/RPM indexes, and publishes
+   page and changelog, regenerates the signed APT (`dists/stable`) and RPM (`rpm/`) indexes, and publishes
    `updates/latest.json`, which every installed app reads.
 
 A failed release can be retried with **Run workflow** on the Release workflow;

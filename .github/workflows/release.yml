@@ -14,6 +14,21 @@ name: Release
 on:
   push:
     branches: [main]
+    # Changes that can't affect the app don't attempt a release (the version
+    # guard would rightly refuse the unchanged version). The Pages workflow
+    # deploys these on its own.
+    paths-ignore:
+      - website/**
+      - docs/**
+      - '*.md'
+      - .github/ISSUE_TEMPLATE/**
+      - .github/pull_request_template.md
+      - .github/dependabot.yml
+      - .github/workflows/pages.yml
+      - .github/workflows/codeql.yml
+      - .github/workflows/audit.yml
+      - scripts/package-repos.sh
+      - scripts/ci/test-package-repos.sh
   workflow_dispatch: # retry a failed release without a new push
 
 # One release at a time, never cancelled halfway; a newer push waits its turn.
@@ -145,11 +160,7 @@ jobs:
             exit 0
           fi
           scripts/ci/import-gpg-key.sh
-          fingerprint="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')"
-          rpm --define "_gpg_name $fingerprint" \
-              --define "_gpg_sign_cmd_extra_args --pinentry-mode loopback --passphrase-file $RUNNER_TEMP/passphrase" \
-              --addsign dist/*.rpm
-          rpm -qpi dist/*.rpm | grep -i signature
+          scripts/ci/sign-rpm.sh dist/*.rpm
 
       - name: Sign every installer for the updater (minisign)
         run: cargo xtask sign --version "$VERSION" dist/*
