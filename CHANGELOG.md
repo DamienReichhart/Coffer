@@ -10,6 +10,18 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-13
+
+### Changed
+
+- The APT repository now uses the standard Debian layout. If you added it with v0.1.0's instructions, replace the line in `/etc/apt/sources.list.d/coffer.list` with `deb [signed-by=/usr/share/keyrings/coffer.gpg] https://damienreichhart.github.io/Coffer/ stable main`.
+
+### Fixed
+
+- The APT and RPM repositories are published with every release; v0.1.0's were missing because the website deployment failed after the release.
+
+The application itself is unchanged from 0.1.0.
+
 ## [0.1.0] - 2026-11-12
 
 ### Added
@@ -25,5 +37,6 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 - Automatic updates from the website: every installer is checked against its SHA-256 and a minisign signature before it runs.
 - Installers for Windows (MSI and portable, x64 and ARM64), macOS (Apple silicon and Intel) and Linux (deb, rpm and AppImage, x64 and ARM64).
 
-[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/DamienReichhart/Coffer/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DamienReichhart/Coffer/releases/tag/v0.1.0
