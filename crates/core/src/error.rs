@@ -93,9 +93,16 @@ pub fn classify(code: Option<i32>, output: &str, archive: Option<&std::path::Pat
     if lower.contains("wrong password") {
         return Error::WrongPassword;
     }
-    if let Some(line) = output.lines().find(|l| l.to_ascii_lowercase().contains("missing volume")) {
-        let name = line.split_once(':').map_or(line, |(_, name)| name).trim();
-        return Error::MissingVolume(name.to_owned());
+    // 7-Zip's own line, `Missing volume : a.z05` (also as `ERROR = …`), not a
+    // folder or file that happens to be called that.
+    let missing = output.lines().find_map(|line| {
+        let line = line.trim();
+        let line = line.strip_prefix("ERROR =").or_else(|| line.strip_prefix("ERROR:")).unwrap_or(line).trim();
+        let (key, name) = line.split_once(':')?;
+        key.trim().eq_ignore_ascii_case("missing volume").then(|| name.trim().to_owned())
+    });
+    if let Some(name) = missing {
+        return Error::MissingVolume(name);
     }
     // A split archive whose last volumes are gone reads as truncated.
     let is_volume = archive.is_some_and(|a| {
@@ -196,6 +203,12 @@ mod tests {
         let out = "ERROR: split.7z.001\nsplit.7z\nOpen ERROR: Cannot open the file as [7z] archive\n\nERRORS:\nUnexpected end of archive";
         let err = classify(Some(2), out, Some(std::path::Path::new("split.7z.001")));
         assert!(matches!(err, Error::MissingVolume(_)), "{err:?}");
+        // Names that merely contain the words are not a missing volume.
+        let out = "Listing archive: /home/u/Missing Volumes/a.7z\nERROR: CRC Failed : Missing Volume notes.txt";
+        let err = classify(Some(2), out, Some(std::path::Path::new("/home/u/Missing Volumes/a.7z")));
+        assert!(matches!(err, Error::Corrupt(_)), "{err:?}");
+        let out = "ERROR = Missing volume : span.z05";
+        assert!(matches!(classify(Some(2), out, None), Error::MissingVolume(n) if n == "span.z05"));
         // An ordinary archive cut short is damaged, not missing a volume.
         let err = classify(Some(2), "ERRORS:\nUnexpected end of archive", Some(std::path::Path::new("a.7z")));
         assert!(matches!(err, Error::Corrupt(_)), "{err:?}");
