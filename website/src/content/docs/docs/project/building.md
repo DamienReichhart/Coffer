@@ -77,7 +77,7 @@ Windows; dmg on macOS), as the release workflow does.
 The screenshots on this site are rendered by the app itself, headlessly, from demo data:
 
 ```sh
-cargo run --release -p coffer --example screenshots -- website/src/assets/screenshots
+cargo run --release -p coffer --features demo --example screenshots -- website/src/assets/screenshots
 cd website
 npm ci
 npm run dev

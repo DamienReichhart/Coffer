@@ -6,6 +6,8 @@
 
 pub mod app;
 pub mod cli;
+/// Sample scenes for tests and the website's screenshots; not in release builds.
+#[cfg(any(test, feature = "demo"))]
 pub mod demo;
 pub mod fonts;
 pub mod icons;

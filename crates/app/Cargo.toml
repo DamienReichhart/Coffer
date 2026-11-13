@@ -50,9 +50,14 @@ tempfile.workspace = true
 [build-dependencies]
 winresource = "0.1.34"
 
+[features]
+# Sample data for the screenshot generator; never enabled in shipped builds.
+demo = []
+
 [[example]]
 name = "screenshots"
 test = false
+required-features = ["demo"]
 
 [lints]
 workspace = true

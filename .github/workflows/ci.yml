@@ -37,7 +37,7 @@ jobs:
         with:
           key: lint
       - run: cargo fmt --all --check
-      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Documentation builds without warnings
         run: cargo doc --workspace --no-deps --locked
         env:
@@ -73,7 +73,7 @@ jobs:
             macOS)   brew install sevenzip ;;
             Windows) [ -x "/c/Program Files/7-Zip/7z.exe" ] || choco install 7zip --no-progress -y ;;
           esac
-      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
       - name: Test (the live 7-Zip tests are required here)
         run: cargo test --workspace --locked
         env:
