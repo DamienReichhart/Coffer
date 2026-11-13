@@ -167,7 +167,18 @@ pub fn app(scene: Scene, dark: bool) -> App {
             app.screen = Screen::Compress;
         }
         Scene::Extract => {
-            app.extract.set_archive(home().join("Downloads").join("photos-2026-summer.zip"), &app.settings.extract);
+            // A split archive, picked by one of its eleven volumes.
+            let downloads = home().join("Downloads");
+            app.extract.set_archive(downloads.join("dataset-v3.7z.004"), &app.settings.extract);
+            let volumes: Vec<PathBuf> = (1..=11).map(|n| downloads.join(format!("dataset-v3.7z.{n:03}"))).collect();
+            app.extract.volumes = Some(coffer_core::volumes::VolumeSet {
+                scheme: coffer_core::volumes::Scheme::Numbered,
+                primary: volumes[0].clone(),
+                name: "dataset-v3.7z".to_owned(),
+                volumes,
+                missing: Vec::new(),
+                total_size: 10_737_418_240,
+            });
             app.screen = Screen::Extract;
         }
         Scene::Activity => {

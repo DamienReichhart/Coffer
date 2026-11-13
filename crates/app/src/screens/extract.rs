@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use coffer_core::format::bytes;
 use coffer_core::volumes::{self, VolumeSet};
 use coffer_core::{ExtractOptions, OverwriteMode};
-use iced::widget::{Space, column, row, text};
+use iced::widget::{column, row, text};
 use iced::{Alignment, Task};
 
 use crate::app::{App, Message, Screen};
@@ -180,55 +180,53 @@ impl App {
 pub fn view(app: &App) -> El<'_> {
     let form = &app.extract;
     let header = ui::page_header("Extract", "Unpack an archive into a folder.", vec![]);
-    let mut body = column![].spacing(ui::L);
+    let mut body = column![].spacing(ui::XL);
 
     if !form.only.is_empty() {
         body = body.push(ui::banner(
             Tone::Accent,
             Icon::ListFilter,
-            text(format!("Only the {} you selected will be extracted.", plural(form.only.len(), "item"))).into(),
+            text(format!("Only the {} you selected will be extracted.", plural(form.only.len(), "item")))
+                .size(13)
+                .into(),
             vec![ui::ghost(None, "Extract everything instead", Some(Message::Extract(Msg::ClearSelection))).into()],
         ));
     }
 
-    body = body.push(ui::section(
+    let mut archive_rows = vec![ui::field(
         "Archive",
-        None,
+        Some("Any format your 7-Zip reads. For a split archive, any of its volumes."),
+        ui::path_input(
+            "Choose an archive",
+            &form.archive,
+            |v| Message::Extract(Msg::Archive(v)),
+            Message::Extract(Msg::BrowseArchive),
+        ),
+    )];
+    if let Some(set) = &form.volumes {
+        archive_rows.push(volumes_field(set));
+    }
+    archive_rows.push(ui::field(
+        "Password",
+        Some("Only for encrypted archives."),
         column![
-            ui::field(
-                "Archive",
-                Some("7z, ZIP, RAR, TAR, ISO and every format your 7-Zip reads. Any volume of a split archive."),
-                ui::path_input(
-                    "Choose an archive",
-                    &form.archive,
-                    |v| Message::Extract(Msg::Archive(v)),
-                    Message::Extract(Msg::BrowseArchive)
-                ),
-            ),
-            volumes_field(form.volumes.as_ref()),
-            ui::field(
-                "Password",
-                Some("Only for encrypted archives."),
-                column![
-                    ui::input("No password", &form.password, |v| Message::Extract(Msg::Password(v)))
-                        .secure(!form.show_password),
-                    iced::widget::checkbox(form.show_password)
-                        .label("Show the password")
-                        .on_toggle(|v| Message::Extract(Msg::ShowPassword(v)))
-                        .size(16),
-                ]
-                .spacing(8)
-                .into(),
-            ),
+            ui::input("No password", &form.password, |v| Message::Extract(Msg::Password(v)))
+                .secure(!form.show_password),
+            iced::widget::checkbox(form.show_password)
+                .label("Show")
+                .on_toggle(|v| Message::Extract(Msg::ShowPassword(v)))
+                .size(15)
+                .text_size(13),
         ]
-        .spacing(16)
+        .spacing(8)
         .into(),
     ));
+    body = body.push(ui::section("Source", None, ui::rows(archive_rows)));
 
     body = body.push(ui::section(
         "Destination",
         None,
-        column![
+        ui::rows(vec![
             ui::field(
                 "Extract to",
                 None,
@@ -236,74 +234,65 @@ pub fn view(app: &App) -> El<'_> {
                     "Choose a folder",
                     &form.destination,
                     |v| Message::Extract(Msg::Destination(v)),
-                    Message::Extract(Msg::BrowseDestination)
+                    Message::Extract(Msg::BrowseDestination),
                 ),
             ),
             ui::switch(
                 "Create a folder named after the archive",
                 Some("Keeps loose files from spilling into the destination."),
                 form.into_folder,
-                |v| Message::Extract(Msg::IntoFolder(v))
+                |v| Message::Extract(Msg::IntoFolder(v)),
             ),
             ui::switch(
                 "Keep the folder structure",
                 Some("Off puts every file directly in the destination."),
                 form.keep_paths,
-                |v| Message::Extract(Msg::KeepPaths(v))
+                |v| Message::Extract(Msg::KeepPaths(v)),
             ),
             ui::field(
                 "When a file already exists",
                 None,
-                ui::select(&OverwriteMode::ALL, Some(form.overwrite), |m| Message::Extract(Msg::Overwrite(m)))
+                ui::select(&OverwriteMode::ALL, Some(form.overwrite), |m| Message::Extract(Msg::Overwrite(m))),
             ),
-            ui::switch("Open the folder when done", None, form.open_when_done, |v| Message::Extract(
-                Msg::OpenWhenDone(v)
-            )),
-        ]
-        .spacing(16)
-        .into(),
+            ui::switch("Open the folder when done", None, form.open_when_done, |v| {
+                Message::Extract(Msg::OpenWhenDone(v))
+            }),
+        ]),
     ));
 
-    let start = ui::primary(
-        Some(Icon::FolderOutput),
-        "Extract",
-        form.problem().is_none().then_some(Message::Extract(Msg::Start)),
-    );
-    let footer: El<'_> = match form.problem() {
-        Some(problem) if !form.archive.is_empty() => {
-            row![ui::banner(Tone::Warning, Icon::CircleAlert, text(problem).into(), vec![]), start]
-                .spacing(12)
-                .align_y(Alignment::Center)
-                .into()
-        }
-        _ => row![ui::fill(), start].into(),
-    };
-    body = body.push(footer);
-    ui::page(header, body.into())
+    let problem = form.problem();
+    let start =
+        ui::primary(Some(Icon::FolderOutput), "Extract", problem.is_none().then_some(Message::Extract(Msg::Start)));
+    let shown = problem.filter(|_| !form.archive.is_empty());
+    ui::form_page(header, body.into(), ui::form_actions(shown, vec![start.into()]))
 }
 
-/// What the volumes of a split archive look like: how many, and which are missing.
-fn volumes_field(set: Option<&VolumeSet>) -> El<'_> {
-    let Some(set) = set else { return Space::new().into() };
+/// The volumes of a split archive: how many, how big, and which are missing.
+fn volumes_field(set: &VolumeSet) -> El<'_> {
     let summary = format!("{} · {} · {}", set.scheme.label(), plural(set.volumes.len(), "file"), bytes(set.total_size));
     let status: El<'_> = if set.is_complete() {
-        ui::small("Every volume is here. 7-Zip reads them as one archive.").into()
+        row![crate::icons::tinted(Icon::CircleCheck, 14.0, |t| t.success), ui::small("All volumes found")]
+            .spacing(6)
+            .align_y(Alignment::Center)
+            .into()
     } else {
-        ui::banner(
-            Tone::Warning,
-            Icon::TriangleAlert,
-            text(crate::app::missing_volumes_message(set)).size(13).into(),
-            vec![],
-        )
+        text(crate::app::missing_volumes_message(set)).size(12).style(crate::theme::tone_text(Tone::Warning)).into()
     };
+    let first = set.primary.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     ui::field(
         "Volumes",
         None,
-        column![
-            row![crate::icons::icon(Icon::Layers, 16.0), text(summary)].spacing(8).align_y(Alignment::Center),
-            status
-        ]
-        .spacing(6)
+        iced::widget::container(
+            column![
+                row![crate::icons::icon(Icon::Layers, 15.0), text(summary).size(13)]
+                    .spacing(8)
+                    .align_y(Alignment::Center),
+                ui::small(format!("7-Zip starts from {first}.")),
+                status,
+            ]
+            .spacing(4),
+        )
+        .width(iced::Length::Fill)
         .into(),
     )
 }
