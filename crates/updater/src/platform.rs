@@ -135,11 +135,14 @@ impl fmt::Display for InstallKind {
 pub fn marker_paths(exe: &Path) -> Vec<PathBuf> {
     let mut paths = Vec::new();
     if let Some(dir) = exe.parent() {
-        // Windows (MSI, portable) and macOS (Contents/MacOS) keep it beside the binary.
+        // Windows (MSI, portable) keeps it beside the binary.
         paths.push(dir.join("install-kind"));
-        // deb and rpm: /usr/bin/coffer → /usr/lib/coffer/install-kind.
         if let Some(prefix) = dir.parent() {
+            // deb and rpm: /usr/bin/coffer → /usr/lib/coffer/install-kind.
             paths.push(prefix.join("lib").join("coffer").join("install-kind"));
+            // macOS: Coffer.app/Contents/MacOS/coffer → Contents/Resources/install-kind
+            // (codesign allows only code in Contents/MacOS).
+            paths.push(prefix.join("Resources").join("install-kind"));
         }
     }
     paths
@@ -170,6 +173,8 @@ mod tests {
         let paths = marker_paths(Path::new("/usr/bin/coffer"));
         assert_eq!(paths[0], Path::new("/usr/bin/install-kind"));
         assert_eq!(paths[1], Path::new("/usr/lib/coffer/install-kind"));
+        let mac = marker_paths(Path::new("/Applications/Coffer.app/Contents/MacOS/coffer"));
+        assert!(mac.contains(&PathBuf::from("/Applications/Coffer.app/Contents/Resources/install-kind")));
     }
 
     #[test]

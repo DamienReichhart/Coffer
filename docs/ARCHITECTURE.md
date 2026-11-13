@@ -91,7 +91,7 @@ recent releases (`KEEP_VERSIONS`). It writes:
 
 ## Screenshots (contract: app ⇄ website)
 
-`cargo run -p coffer --example screenshots -- <out-dir>` renders the real
+`cargo run -p coffer --features demo --example screenshots -- <out-dir>` renders the real
 views headlessly (iced's tiny-skia renderer, demo data, no 7-Zip needed) to
 `<out-dir>/{light,dark}/<name>.png` at 1280×800 logical pixels and a scale
 factor of 2. Names: `welcome`, `browse`, `compress`, `extract`, `activity`,
@@ -101,7 +101,8 @@ deployment into `website/src/assets/screenshots/`.
 ## Install kind (contract: packaging ⇄ updater)
 
 Each package installs a one-word text file named `install-kind` next to the
-executable (Windows, macOS `Contents/MacOS`) or at `/usr/lib/coffer/install-kind`
+executable (Windows), in `Coffer.app/Contents/Resources` (macOS: codesign allows
+only code in `Contents/MacOS`) or at `/usr/lib/coffer/install-kind`
 (deb, rpm) whose content is the *kind* above. An AppImage is recognised by the
 `APPIMAGE` environment variable. Without a marker (a `cargo run` build) the app
 still checks for updates but offers to open the download page instead of

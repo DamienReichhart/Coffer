@@ -378,7 +378,9 @@ fn dmg(ctx: &Ctx<'_>) -> Result<PathBuf> {
     let app = stage.join(format!("{PRODUCT}.app"));
     let contents = app.join("Contents");
     install(&ctx.binary, &contents.join("MacOS").join(BINARY), 0o755)?;
-    write(&contents.join("MacOS/install-kind"), "dmg\n", 0o644)?;
+    // Data goes in Resources: codesign treats everything in MacOS/ as code
+    // and refuses to sign a bundle with a plain file there.
+    write(&contents.join("Resources/install-kind"), "dmg\n", 0o644)?;
     install(&ctx.root.join("packaging/macos/AppIcon.icns"), &contents.join("Resources/AppIcon.icns"), 0o644)?;
     let plist = std::fs::read_to_string(ctx.root.join("packaging/macos/Info.plist"))?
         .replace("@VERSION@", &ctx.version.to_string())
@@ -396,9 +398,10 @@ fn dmg(ctx: &Ctx<'_>) -> Result<PathBuf> {
     let identity = std::env::var("APPLE_SIGNING_IDENTITY").ok().filter(|s| !s.is_empty());
     let entitlements = ctx.root.join("packaging/macos/entitlements.plist");
     let mut codesign = Command::new("codesign");
-    codesign.args(["--force", "--timestamp", "--options", "runtime", "--entitlements"]).arg(&entitlements);
+    codesign.args(["--force", "--options", "runtime", "--entitlements"]).arg(&entitlements);
     match &identity {
-        Some(identity) => codesign.args(["--sign", identity]),
+        // A secure timestamp is required for notarization, and only exists for real identities.
+        Some(identity) => codesign.args(["--timestamp", "--sign", identity]),
         // Ad-hoc: Apple silicon refuses unsigned code; Gatekeeper still warns.
         None => codesign.args(["--sign", "-"]),
     };
