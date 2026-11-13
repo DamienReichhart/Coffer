@@ -78,6 +78,11 @@ impl Form {
         self.volumes = if archive.is_empty() { None } else { volumes::detect(Path::new(archive)) };
     }
 
+    /// Looks again for the volumes, which may have been moved in or renamed.
+    pub fn refresh_volumes(&mut self) {
+        self.find_volumes();
+    }
+
     /// The file 7-Zip is given: the first volume of a split archive.
     pub fn archive_path(&self) -> PathBuf {
         self.volumes.as_ref().map_or_else(|| PathBuf::from(self.archive.trim()), |set| set.primary.clone())
@@ -154,6 +159,7 @@ impl App {
             Msg::OpenWhenDone(on) => form.open_when_done = on,
             Msg::ClearSelection => form.only.clear(),
             Msg::Start => {
+                form.find_volumes();
                 if form.problem().is_some() {
                     return Task::none();
                 }
@@ -318,13 +324,12 @@ mod tests {
         assert_eq!(form.problem(), None);
 
         std::fs::remove_file(dir.path().join("backup.zip.004")).expect("remove");
-        form.update_archive_for_test();
+        form.refresh_volumes();
         assert_eq!(form.problem().as_deref(), Some("A volume is missing."));
-    }
 
-    impl Form {
-        fn update_archive_for_test(&mut self) {
-            self.find_volumes();
-        }
+        // Putting it back unblocks the form.
+        std::fs::write(dir.path().join("backup.zip.004"), b"x").expect("write");
+        form.refresh_volumes();
+        assert_eq!(form.problem(), None);
     }
 }
