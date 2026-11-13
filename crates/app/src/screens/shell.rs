@@ -36,6 +36,25 @@ fn nav_item<'a>(app: &App, screen: Screen, i: Icon, label: String, enabled: bool
         .into()
 }
 
+/// A sidebar link that opens a page in the browser.
+fn external_item<'a>(i: Icon, label: &'a str, url: &'static str) -> El<'a> {
+    let content = row![icon(i, 18.0), text(label).width(Length::Fill), icon(Icon::ExternalLink, 13.0),]
+        .spacing(10)
+        .align_y(Alignment::Center);
+    let link = button(content)
+        .width(Length::Fill)
+        .padding([8, 10])
+        .style(theme::nav(false))
+        .on_press(Message::OpenUrl(url.to_owned()));
+    iced::widget::tooltip(
+        link,
+        container(text(url).size(12)).padding([4, 8]).style(theme::modal),
+        iced::widget::tooltip::Position::Right,
+    )
+    .gap(6)
+    .into()
+}
+
 pub fn sidebar(app: &App) -> El<'_> {
     let brand = row![
         svg(svg::Handle::from_memory(LOGO)).width(30).height(30),
@@ -68,6 +87,8 @@ pub fn sidebar(app: &App) -> El<'_> {
     let footer = column![
         nav_item(app, Screen::Settings, Icon::Settings, "Settings".into(), true, None),
         nav_item(app, Screen::About, Icon::Info, "About".into(), true, None),
+        external_item(Icon::BookOpen, "Documentation", crate::DOCS),
+        external_item(Icon::Github, "GitHub", crate::REPOSITORY),
         seven_status(app),
     ]
     .spacing(2);
