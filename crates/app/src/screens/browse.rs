@@ -367,8 +367,14 @@ fn layout(browser: &Browser, width: f32) -> El<'_> {
         rule::horizontal(1).style(theme::hairline),
         status_bar(browser),
     ];
+    // The table is always the first child, so it keeps its scroll position
+    // and the search its focus when the panel comes and goes.
     let main = container(content).width(Length::Fill).height(Length::Fill);
-    if panel { row![main, rule::vertical(1).style(theme::hairline), info_panel(browser)].into() } else { main.into() }
+    let mut layout = row![main];
+    if panel {
+        layout = layout.push(rule::vertical(1).style(theme::hairline)).push(info_panel(browser));
+    }
+    layout.into()
 }
 
 /// A toolbar button: smaller than the form buttons, and only an icon when space is short.
