@@ -26,6 +26,12 @@ see the list 7-Zip prints with `7z i`.
 RAR is extract-only in every 7-Zip; some Linux distributions build 7-Zip without RAR support (see
 [Installing 7-Zip](/docs/installing-7zip/)).
 
+## Split archives
+
+Every format above can be read when it is split into volumes (`.001`, `.part1.rar`, `.r00`,
+`.z01`), from any of the volumes. See
+[Split and multi-part archives](/docs/guides/extracting/#split-and-multi-part-archives).
+
 ## Compressed TAR in one step
 
 GZIP, BZIP2 and XZ compress a single file. To compress a folder with them, create a TAR first and

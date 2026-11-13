@@ -19,4 +19,4 @@ Test a new archive before deleting the originals — or before burning it, uploa
 into long-term storage.
 :::
 
-Split archives are tested as a whole: open the first volume with every part beside it.
+Split archives are tested as a whole: open any volume, with every part in the same folder.
