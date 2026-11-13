@@ -1,0 +1,104 @@
+/*
+ * Coffer's palette, shared by the marketing pages, the Starlight docs and the
+ * desktop app (crates/app theme). Starlight's `data-theme` attribute drives both
+ * the docs and the site, so the theme a visitor picks follows them everywhere.
+ */
+
+:root {
+  --sl-font: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sl-font-mono:
+    'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
+
+  --z-radius: 0.5rem;
+  --z-radius-lg: 0.875rem;
+  --z-max: 74rem;
+}
+
+/* Dark is the default theme (no attribute, or data-theme="dark"). */
+:root,
+::backdrop {
+  --sl-color-accent-low: #23264a;
+  --sl-color-accent: #7c8cff;
+  --sl-color-accent-high: #c9d0ff;
+  --sl-color-white: #ecedef;
+  --sl-color-gray-1: #dcdde2;
+  --sl-color-gray-2: #b9bbc4;
+  --sl-color-gray-3: #9a9da8;
+  --sl-color-gray-4: #5f6270;
+  --sl-color-gray-5: #2c2e36;
+  --sl-color-gray-6: #1a1b20;
+  --sl-color-black: #121316;
+  --sl-color-blue-low: #1f2340;
+  --sl-color-blue: #7c8cff;
+  --sl-color-blue-high: #c9d0ff;
+
+  --z-bg: #121316;
+  --z-bg-raised: #17181c;
+  --z-surface: #1a1b20;
+  --z-surface-raised: #202127;
+  --z-border: #2c2e36;
+  --z-border-strong: #3a3d48;
+  --z-text: #ecedef;
+  --z-text-muted: #9a9da8;
+  --z-text-faint: #80838f;
+  --z-primary: #7c8cff;
+  --z-primary-strong: #97a4ff;
+  --z-primary-soft: rgb(124 140 255 / 0.14);
+  --z-on-primary: #0b0d1a;
+  --z-success: #2fb67c;
+  --z-warning: #e9a23b;
+  --z-danger: #f0605d;
+  --z-code-bg: #1a1b20;
+  --z-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.65), 0 2px 6px rgb(0 0 0 / 0.25);
+  --z-glow: rgb(124 140 255 / 0.22);
+}
+
+:root[data-theme='light'],
+[data-theme='light'] ::backdrop {
+  --sl-color-accent-low: #dfe3ff;
+  --sl-color-accent: #4555e8;
+  --sl-color-accent-high: #1d2577;
+  --sl-color-white: #17181c;
+  --sl-color-gray-1: #26272d;
+  --sl-color-gray-2: #3b3d45;
+  --sl-color-gray-3: #5f6270;
+  --sl-color-gray-4: #8b8e99;
+  --sl-color-gray-5: #e2e2de;
+  --sl-color-gray-6: #efefec;
+  --sl-color-gray-7: #f7f7f5;
+  --sl-color-black: #ffffff;
+  --sl-color-blue-low: #e4e7ff;
+  --sl-color-blue: #4555e8;
+  --sl-color-blue-high: #1d2577;
+
+  --z-bg: #f7f7f5;
+  --z-bg-raised: #efefec;
+  --z-surface: #ffffff;
+  --z-surface-raised: #fbfbfa;
+  --z-border: #e2e2de;
+  --z-border-strong: #cfcfca;
+  --z-text: #17181c;
+  --z-text-muted: #5f6270;
+  --z-text-faint: #6b6e7a;
+  --z-primary: #4555e8;
+  --z-primary-strong: #3443cc;
+  --z-primary-soft: rgb(69 85 232 / 0.09);
+  --z-on-primary: #ffffff;
+  --z-success: #138a55;
+  --z-warning: #b26b00;
+  --z-danger: #d03a35;
+  --z-code-bg: #efefec;
+  --z-shadow: 0 24px 60px -28px rgb(23 24 28 / 0.28), 0 2px 6px rgb(23 24 28 / 0.06);
+  --z-glow: rgb(69 85 232 / 0.14);
+}
+
+/* Ligatures turn `-<` and `->` into arrows: code must show exactly what to type. */
+code,
+kbd,
+pre,
+samp,
+.expressive-code {
+  font-variant-ligatures: none;
+  font-feature-settings: 'calt' 0, 'liga' 0;
+}

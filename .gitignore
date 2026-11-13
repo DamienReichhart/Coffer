@@ -1,0 +1,13 @@
+/target/
+/dist/
+**/*.rs.bk
+*.pdb
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+# Release secrets never belong in the repository.
+*.key
+*.secret
+update.key

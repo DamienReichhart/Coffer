@@ -1,0 +1,58 @@
+---
+/** Switches between the light and dark themes; shares Starlight's storage key so the docs follow. */
+import Icon from './Icon.astro';
+---
+
+<button
+  class="icon-button theme-toggle"
+  type="button"
+  aria-label="Switch to light theme"
+  data-label-light="Switch to light theme"
+  data-label-dark="Switch to dark theme"
+>
+  <span class="only-dark"><Icon name="sun" /></span>
+  <span class="only-light"><Icon name="moon" /></span>
+</button>
+
+<script>
+  const KEY = 'starlight-theme';
+  const root = document.documentElement;
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.theme-toggle');
+
+  function label() {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    for (const button of buttons) {
+      const text = next === 'light' ? button.dataset.labelLight : button.dataset.labelDark;
+      if (text) button.setAttribute('aria-label', text);
+    }
+  }
+
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+      root.dataset.theme = next;
+      try {
+        localStorage.setItem(KEY, next);
+      } catch {
+        // Storage can be unavailable (private mode); the toggle still works for this page.
+      }
+      label();
+    });
+  }
+
+  // Follow the system while the visitor hasn't picked a theme.
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', (event) => {
+    let stored = '';
+    try {
+      stored = localStorage.getItem(KEY) || '';
+    } catch {
+      // Ignore: fall back to the system theme.
+    }
+    if (!stored) {
+      root.dataset.theme = event.matches ? 'light' : 'dark';
+      label();
+    }
+  });
+
+  label();
+</script>

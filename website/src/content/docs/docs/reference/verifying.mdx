@@ -1,0 +1,67 @@
+---
+title: Verifying downloads
+description: Check an installer’s checksum, signature and build provenance.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Every release is built by GitHub Actions from the public source and published with three ways to
+check a file. The [download page](/download/) lists each installer’s SHA-256 and links its
+signature. The app performs the first two checks itself for every update.
+
+## 1. SHA-256 checksum
+
+Each release has a `SHA256SUMS.txt` listing every installer’s SHA-256. Download it next to your
+installer, then:
+
+<Tabs syncKey="os">
+<TabItem label="Linux">
+
+```sh
+sha256sum --ignore-missing -c SHA256SUMS.txt
+```
+
+</TabItem>
+<TabItem label="macOS">
+
+```sh
+shasum -a 256 --ignore-missing -c SHA256SUMS.txt
+```
+
+</TabItem>
+<TabItem label="Windows">
+
+```powershell
+Get-FileHash .\Coffer-1.0.0-windows-x64.msi -Algorithm SHA256
+```
+
+Compare the hash with the installer’s line in `SHA256SUMS.txt`. Coffer’s own
+[Checksums](/docs/guides/checksums/) screen does the same.
+
+</TabItem>
+</Tabs>
+
+A checksum proves the file wasn’t damaged — and, since `SHA256SUMS.txt` comes from the same
+release, that it matches what was published.
+
+## 2. minisign signature
+
+Each installer has a `.minisig` signature made with the project’s release key. The public key is
+in the repository at `packaging/keys/update.pub` and built into the app. With
+[minisign](https://jedisct1.github.io/minisign/):
+
+```sh
+minisign -Vm Coffer-1.0.0-linux-x64.deb -p update.pub
+```
+
+`Signature and comment signature verified` means the file was signed by the release key.
+
+## 3. Build provenance
+
+Every installer has a [build provenance attestation](https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations)
+proving it was built by this repository’s release workflow from a specific commit. With the GitHub
+CLI:
+
+```sh
+gh attestation verify Coffer-1.0.0-linux-x64.deb --repo DamienReichhart/Coffer
+```

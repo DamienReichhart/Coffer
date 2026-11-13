@@ -1,0 +1,74 @@
+---
+title: Creating archives
+description: Formats, compression levels and methods, encryption, split volumes and every other option.
+---
+
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+Open **Compress** from the welcome screen or the sidebar, drop files and folders onto the window, or
+run `coffer --compress <paths…>`.
+
+<DocScreenshot name="compress" alt="The compress screen" />
+
+## Files
+
+Add files and folders with **Add files**, **Add folder**, or by dropping them. Folders are added with
+everything inside. Remove an entry with its remove button. Each item is stored under its own name at
+the top of the archive.
+
+## Output
+
+Choose where to save the archive. The file extension follows the format you choose.
+
+## Format
+
+| Format | Best for | Notes |
+| --- | --- | --- |
+| **7z** | The smallest archives | Solid compression, AES-256 with encrypted names. Needs 7-Zip or a compatible tool to open. |
+| **ZIP** | Sharing with anyone | Opens everywhere. AES-256 encryption (older tools may need ZipCrypto, which 7-Zip reads). |
+| **TAR** | Unix permissions, packaging | No compression on its own. |
+| **GZIP**, **BZIP2**, **XZ** | Compressing one file | Compress a **single file** only — for folders, create a TAR first, then compress it. |
+| **WIM** | Windows imaging | Stores Windows file metadata. |
+
+Coffer tells you when a choice doesn’t fit — for example a GZIP of several files.
+
+## Compression level
+
+**Store** (no compression), **Fastest**, **Fast**, **Normal**, **Maximum** and **Ultra** map to
+7-Zip’s `-mx0`, `-mx1`, `-mx3`, `-mx5`, `-mx7` and `-mx9`. Higher levels compress better and take
+longer and more memory. Already-compressed files (videos, JPEGs, other archives) barely shrink at
+any level: **Store** or **Fastest** saves time for them.
+
+## Advanced options
+
+| Option | What it does |
+| --- | --- |
+| **Method** | The algorithm: LZMA2 (default for 7z, multithreaded), LZMA, PPMd (great for text), BZip2, Deflate (ZIP’s default), Deflate64. The list follows the format. |
+| **Dictionary size** | How far back the compressor looks for repeats. Bigger can compress better and needs more memory to compress *and* extract. |
+| **Solid archive** | 7z only. Compresses files together as one stream, which shrinks similar files a lot, but extracting one file means decompressing the block it is in. |
+| **Threads** | How many CPU threads 7-Zip uses; *Automatic* lets it decide. |
+| **Exclude** | Wildcard patterns of files to leave out, such as `*.tmp` or `node_modules`, applied in every folder. |
+| **Delete files after compression** | Removes the originals once the archive is complete (7-Zip’s `-sdel`). Use with care — test the archive first if in doubt. |
+
+## Encryption
+
+Set a password (and confirm it) to encrypt with **AES-256**. For 7z archives, **Encrypt file
+names** also hides the names and sizes of the files inside; without it, anyone can list the archive
+but not read the files.
+
+:::caution[Don’t lose the password]
+There is no way to recover an encrypted archive without its password — not for you, not for us,
+not for 7-Zip.
+:::
+
+## Split into volumes
+
+Cut the archive into parts of a given size: presets for **10 MB**, **100 MB**, **700 MB** (CD),
+**4 GB** (FAT32’s file limit) and **4.7 GB** (DVD), or a custom size. Volumes are named
+`archive.7z.001`, `archive.7z.002`, … ; to extract, open the first one with all the parts in the same
+folder.
+
+## Updating an existing archive
+
+If the output file already exists and its format supports it, 7-Zip adds the files to it and
+replaces entries with the same name. Choose another name to create a fresh archive.

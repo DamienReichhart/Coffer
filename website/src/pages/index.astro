@@ -1,0 +1,39 @@
+---
+import CallToAction from '@/components/home/CallToAction.astro';
+import Faq from '@/components/home/Faq.astro';
+import Features from '@/components/home/Features.astro';
+import Formats from '@/components/home/Formats.astro';
+import Hero from '@/components/home/Hero.astro';
+import Platforms from '@/components/home/Platforms.astro';
+import Privacy from '@/components/home/Privacy.astro';
+import SevenZip from '@/components/home/SevenZip.astro';
+import Showcase from '@/components/home/Showcase.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { latest } from '@/lib/releases';
+import { DESCRIPTION, NAME, REPO_URL } from '@/lib/site';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: NAME,
+  description: DESCRIPTION,
+  applicationCategory: 'UtilitiesApplication',
+  operatingSystem: 'Windows, macOS, Linux',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  license: 'https://opensource.org/licenses/MIT',
+  codeRepository: REPO_URL,
+  ...(latest ? { softwareVersion: latest.version } : {}),
+};
+---
+
+<SiteLayout title={`${NAME} — A modern desktop app for 7-Zip`} jsonLd={jsonLd}>
+  <Hero />
+  <Formats />
+  <Features />
+  <SevenZip />
+  <Showcase />
+  <Privacy />
+  <Platforms />
+  <Faq />
+  <CallToAction />
+</SiteLayout>

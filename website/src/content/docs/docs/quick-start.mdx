@@ -1,0 +1,53 @@
+---
+title: Quick start
+description: Open, extract and create your first archive in a minute.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+Make sure [7-Zip is installed](/docs/installing-7zip/). If it isn’t, the welcome screen tells you
+and shows the command for your system.
+
+## Open an archive
+
+<Steps>
+
+1. Click **Open archive** on the welcome screen, drop an archive onto the window, or open one with
+   Coffer from your file manager.
+2. Browse it like a folder: double-click a folder to go in, use the breadcrumbs to go back up.
+3. Click the column headers to sort, and type in the search box to filter by name.
+
+</Steps>
+
+<DocScreenshot name="browse" alt="An open archive with its folders and files" />
+
+If the archive is encrypted, Coffer asks for its password.
+
+## Extract it
+
+<Steps>
+
+1. Select the files you want (or none, to extract everything) and click **Extract**.
+2. Check the destination — by default a new folder named after the archive, next to it.
+3. Click **Extract**. Progress appears in **Activity**; the folder opens when it’s done if you asked
+   for it.
+
+</Steps>
+
+## Create an archive
+
+<Steps>
+
+1. Click **Compress** on the welcome screen, or drop files and folders onto the window.
+2. Choose where to save the archive, a format (7z for the best ratio, ZIP for compatibility) and a
+   level.
+3. Optionally set a password, split it into volumes or open **Advanced** for every other option.
+4. Click **Create**.
+
+</Steps>
+
+<DocScreenshot name="compress" alt="The compress screen" />
+
+Next, read the guides on [extracting](/docs/guides/extracting/) and
+[creating archives](/docs/guides/creating/) for every option.

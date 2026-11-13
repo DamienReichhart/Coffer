@@ -1,0 +1,21 @@
+[Desktop Entry]
+Type=Application
+Name=Coffer
+GenericName=Archive Manager
+Comment=Open, create and extract archives with 7-Zip
+Exec=coffer %F
+Icon=io.github.damienreichhart.Coffer
+Terminal=false
+Categories=Utility;Archiving;Compression;
+Keywords=7z;7-Zip;zip;rar;tar;archive;compress;extract;unzip;
+StartupWMClass=io.github.damienreichhart.Coffer
+MimeType=application/x-7z-compressed;application/zip;application/x-zip-compressed;application/vnd.rar;application/x-rar;application/x-tar;application/gzip;application/x-gzip;application/x-compressed-tar;application/x-bzip2;application/x-bzip2-compressed-tar;application/x-xz;application/x-xz-compressed-tar;application/x-lzma;application/zstd;application/x-zstd-compressed-tar;application/vnd.ms-cab-compressed;application/x-iso9660-image;application/x-cd-image;application/x-cpio;application/x-arj;application/x-lzh-compressed;application/x-ms-wim;application/java-archive;
+Actions=Compress;Extract;
+
+[Desktop Action Compress]
+Name=Compress Files…
+Exec=coffer --compress %F
+
+[Desktop Action Extract]
+Name=Extract an Archive…
+Exec=coffer

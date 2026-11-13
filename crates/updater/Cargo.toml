@@ -1,0 +1,32 @@
+[package]
+name = "coffer-updater"
+description = "Checks for, downloads, verifies and installs Coffer updates."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+publish = false
+build = "build.rs"
+
+[dependencies]
+minisign-verify.workspace = true
+semver.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+ureq = { workspace = true, features = ["rustls", "platform-verifier", "gzip"] }
+
+[target.'cfg(windows)'.dependencies]
+self-replace.workspace = true
+zip = { workspace = true, features = ["deflate"] }
+
+[dev-dependencies]
+minisign.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

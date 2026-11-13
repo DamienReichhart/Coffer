@@ -1,0 +1,103 @@
+---
+/* The app's main screens, each with a short explanation. */
+import Icon from '@/components/Icon.astro';
+import Screenshot, { type ScreenshotName } from '@/components/Screenshot.astro';
+import { href } from '@/lib/href';
+
+const shots: { name: ScreenshotName; eyebrow: string; title: string; text: string; link: string; alt: string }[] = [
+  {
+    name: 'compress',
+    eyebrow: 'Create',
+    title: 'Every switch 7-Zip has, none of the syntax',
+    text: 'Pick a format and a level and go, or open the advanced options: compression method, dictionary, solid blocks, threads, AES-256 with encrypted names, split volumes, exclusions, and deleting the originals once they are safely archived.',
+    link: '/docs/guides/creating/',
+    alt: 'The compress screen with the format, level, encryption and split options',
+  },
+  {
+    name: 'extract',
+    eyebrow: 'Extract',
+    title: 'Unpack into the right place, the first time',
+    text: 'Extract everything or only what you selected, keep or flatten the folder structure, decide what happens to files that already exist, and open the folder when it’s done.',
+    link: '/docs/guides/extracting/',
+    alt: 'The extract dialog with the destination and overwrite options',
+  },
+  {
+    name: 'activity',
+    eyebrow: 'Activity',
+    title: 'Long jobs, in plain sight',
+    text: 'Progress, the file being processed and the elapsed time for each job. Cancel any of them, and open the full 7-Zip log of one that failed.',
+    link: '/docs/guides/activity/',
+    alt: 'The activity screen with running and finished jobs',
+  },
+  {
+    name: 'checksums',
+    eyebrow: 'Checksums',
+    title: 'Is it the file you think it is?',
+    text: 'Hash files with CRC32, CRC64, SHA-1, SHA-256 or BLAKE2sp and compare against the value a download page gives you.',
+    link: '/docs/guides/checksums/',
+    alt: 'The checksums screen with SHA-256 results',
+  },
+];
+---
+
+<section class="section" id="tour">
+  <div class="container">
+    <div class="section-heading section-heading--center" data-reveal>
+      <span class="eyebrow">A quick tour</span>
+      <h2>Designed for the way you actually use archives</h2>
+    </div>
+    <div class="showcase">
+      {shots.map((shot, i) => (
+        <article class:list={['showcase__row', { 'showcase__row--flip': i % 2 === 1 }]} data-reveal>
+          <div class="showcase__text">
+            <span class="eyebrow">{shot.eyebrow}</span>
+            <h3>{shot.title}</h3>
+            <p>{shot.text}</p>
+            <a href={href(shot.link)}>
+              Learn more <Icon name="arrowRight" size={16} />
+            </a>
+          </div>
+          <Screenshot name={shot.name} alt={shot.alt} sizes="(min-width: 64rem) 42rem, calc(100vw - 2.5rem)" />
+        </article>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .showcase {
+    display: grid;
+    gap: 5rem;
+  }
+  .showcase__row {
+    display: grid;
+    gap: 2rem;
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .showcase__row {
+      grid-template-columns: 2fr 3fr;
+      gap: 4rem;
+    }
+    .showcase__row--flip .showcase__text {
+      order: 2;
+    }
+  }
+  .showcase__text {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .showcase__text h3 {
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 1.85rem);
+  }
+  .showcase__text p {
+    color: var(--z-text-muted);
+  }
+  .showcase__text a {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>

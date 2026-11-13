@@ -1,0 +1,53 @@
+---
+title: Settings
+description: Every setting, and where they are stored.
+---
+
+import DocScreenshot from '@/components/DocScreenshot.astro';
+
+Open **Settings** from the sidebar. Changes apply immediately and are saved automatically.
+
+<DocScreenshot name="settings" alt="The settings screen" />
+
+## Appearance
+
+- **Theme** — *System* (follows your operating system’s light or dark mode, and switches with it),
+  *Light* or *Dark*.
+
+## 7-Zip
+
+- **Executable** — the 7-Zip program in use, its version and where it was found. Leave it on
+  automatic detection or **Browse** to a specific `7zz`, `7z` or `7za`
+  (see [how 7-Zip is found](/docs/installing-7zip/#how-coffer-finds-7-zip)).
+- **Detect again** — re-runs detection after you install or update 7-Zip.
+
+## Defaults
+
+- **Archive format** and **compression level** the Compress screen starts with.
+- **When a file already exists** — the default for extraction (overwrite, skip, rename extracted,
+  rename existing).
+- **Open the folder after extracting** — on or off by default.
+
+## Updates
+
+- **Check for updates automatically** — on by default. See [Automatic updates](/docs/reference/updates/).
+- **Check now** — checks immediately and shows the result.
+
+## Advanced
+
+- **Open settings folder** and **Open log folder** — for troubleshooting.
+- **Reset all settings** — returns everything to the defaults (and clears the recent archives).
+
+## Where settings are stored
+
+Settings are a TOML file, `settings.toml`, in your user configuration folder:
+
+| Platform | Location |
+| --- | --- |
+| Linux | `~/.config/coffer/settings.toml` (or `$XDG_CONFIG_HOME/coffer/`) |
+| macOS | `~/Library/Application Support/io.github.damienreichhart.Coffer/settings.toml` |
+| Windows | `%APPDATA%\DamienReichhart\Coffer\config\settings.toml` |
+
+The file is safe to delete (the app recreates it with defaults) and to copy to another computer. If
+it can’t be read — after a manual edit gone wrong, say — Coffer starts with the defaults and keeps
+the broken file aside instead of overwriting it.

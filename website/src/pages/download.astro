@@ -1,0 +1,200 @@
+---
+import AssetTable from '@/components/download/AssetTable.astro';
+import Repositories from '@/components/download/Repositories.astro';
+import Verify from '@/components/download/Verify.astro';
+import DownloadButton from '@/components/DownloadButton.astro';
+import Icon from '@/components/Icon.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { changelogAnchor, formatDate } from '@/lib/format';
+import { href } from '@/lib/href';
+import { repositoryKey } from '@/lib/packages';
+import { latest, previous, recommended } from '@/lib/releases';
+import { KEEP_VERSIONS, NAME, RELEASES_URL } from '@/lib/site';
+
+const root = new URL(import.meta.env.BASE_URL, Astro.site).href.replace(/\/$/, '');
+const example = latest?.assets[0]?.name ?? `Coffer-1.0.0-linux-x64.deb`;
+---
+
+<SiteLayout
+  title={`Download ${NAME}`}
+  description={`Download ${NAME} for Windows, macOS and Linux, on x64 and ARM64.`}
+>
+  <section class="section download-hero">
+    <div class="container">
+      <div class="section-heading section-heading--center">
+        <span class="eyebrow">Download</span>
+        <h1>Get {NAME}</h1>
+        {
+          latest ? (
+            <p>
+              Version <strong>{latest.version}</strong>
+              {latest.date && <> · released {formatDate(latest.date)}</>} ·{' '}
+              <a href={`${href('/changelog/')}#${changelogAnchor(latest.version)}`}>What’s new</a>
+            </p>
+          ) : (
+            <p>
+              The first release is on its way. Watch the{' '}
+              <a href={RELEASES_URL}>releases on GitHub</a>, or{' '}
+              <a href={href('/docs/project/building/')}>build it from source</a> today.
+            </p>
+          )
+        }
+        {latest && <DownloadButton />}
+        <p class="download-hero__note">
+          <Icon name="package" size={16} />
+          <span>You also need 7-Zip installed: <a href={href('/docs/installing-7zip/')}>how to install it</a>.</span>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="container download">
+    {
+      latest && (
+        <section aria-labelledby="latest-title" class="download__block">
+          <h2 id="latest-title">All installers for {latest.version}</h2>
+          <AssetTable release={latest} highlight />
+          {latest.checksumsUrl && (
+            <p class="download__sums">
+              <a href={latest.checksumsUrl}>SHA256SUMS.txt</a> · <a href={latest.htmlUrl}>Release on GitHub</a>
+            </p>
+          )}
+        </section>
+      )
+    }
+
+    {repositoryKey && <Repositories root={root} />}
+
+    <section class="download__block" aria-labelledby="formats-title">
+      <h2 id="formats-title">Which file do I need?</h2>
+      <dl class="formats">
+        <div><dt>Windows · .msi</dt><dd>The installer. Adds a Start menu entry and updates itself in place.</dd></div>
+        <div><dt>Windows · .zip</dt><dd>Portable: unzip anywhere and run <code>coffer.exe</code>. Replaces itself when updating.</dd></div>
+        <div><dt>macOS · .dmg</dt><dd>Drag the app into Applications. Apple silicon (arm64) or Intel (x64).</dd></div>
+        <div><dt>Linux · .deb / .rpm</dt><dd>For apt or dnf/zypper based distributions; updates through your package manager.</dd></div>
+        <div><dt>Linux · AppImage</dt><dd>One file that runs on most distributions. Make it executable and run it.</dd></div>
+      </dl>
+    </section>
+
+    {latest && <Verify example={example} />}
+
+    {
+      previous.length > 0 && (
+        <section class="download__block" aria-labelledby="previous-title">
+          <h2 id="previous-title">Previous versions</h2>
+          <p class="download__muted">
+            This site keeps the last {KEEP_VERSIONS} releases. Every release ever published is on{' '}
+            <a href={RELEASES_URL}>GitHub</a>.
+          </p>
+          {previous.map((release) => (
+            <details class="card previous">
+              <summary>
+                <strong>{release.version}</strong>
+                {release.prerelease && <span class="previous__tag">Pre-release</span>}
+                <span>{formatDate(release.date)}</span>
+              </summary>
+              <div class="previous__body">
+                <AssetTable release={release} />
+              </div>
+            </details>
+          ))}
+        </section>
+      )
+    }
+  </div>
+</SiteLayout>
+
+<script define:vars={{ targets: recommended(latest) }}>
+  window.__downloadTargets = targets;
+</script>
+<script>
+  import { detectPlatform, platformKey } from '@/lib/platform';
+
+  void detectPlatform().then((platform) => {
+    const key = platformKey(platform);
+    if (!key) return;
+    document.querySelector(`[data-os="${platform.os}"]`)?.classList.add('is-detected');
+    const targets = (window as unknown as { __downloadTargets: Record<string, string> }).__downloadTargets;
+    const url = targets?.[key];
+    if (!url || (platform.os === 'macos' && !platform.arch)) return;
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('.asset a.button')) {
+      if (link.getAttribute('href') === url) link.closest('.asset')?.classList.add('is-detected');
+    }
+  });
+</script>
+
+<style>
+  .download-hero {
+    padding-bottom: 3rem;
+  }
+  .download-hero h1 {
+    font-size: clamp(2.2rem, 1.5rem + 3vw, 3.4rem);
+  }
+  .download-hero .section-heading {
+    margin-bottom: 0;
+  }
+  .download-hero__note {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem !important;
+  }
+  .download {
+    display: grid;
+    gap: 4rem;
+  }
+  .download__block {
+    display: grid;
+    gap: 1rem;
+  }
+  .download__block h2 {
+    font-size: 1.5rem;
+  }
+  .download__sums,
+  .download__muted {
+    color: var(--z-text-muted);
+    font-size: 0.92rem;
+  }
+  .formats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+    gap: 1rem;
+    margin: 0;
+  }
+  .formats div {
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--z-border);
+    border-radius: var(--z-radius-lg);
+    background: var(--z-surface);
+  }
+  .formats dt {
+    font-weight: 600;
+  }
+  .formats dd {
+    margin: 0.3rem 0 0;
+    color: var(--z-text-muted);
+    font-size: 0.92rem;
+  }
+  .previous summary {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+  }
+  .previous summary span {
+    color: var(--z-text-muted);
+    font-size: 0.9rem;
+  }
+  .previous .previous__tag {
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--z-bg-raised);
+    font-size: 0.75rem;
+  }
+  .previous__body {
+    padding: 0 1.25rem 1.25rem;
+  }
+</style>

@@ -1,0 +1,131 @@
+name: Pages
+
+# Builds and deploys the website (website/) to GitHub Pages:
+# - on pushes to main that change the website, the docs it renders or the app's
+#   look (the screenshots come from the app's real views);
+# - after every successful Release, so the download page, the changelog, the
+#   hosted installers (the five most recent versions), the APT/RPM
+#   repositories and the update manifest list the new version. (A release
+#   published with GITHUB_TOKEN triggers no `release` event, so this listens
+#   for the workflow instead.)
+# Pull requests build the website in CI.
+on:
+  push:
+    branches: [main]
+    paths:
+      - website/**
+      - CHANGELOG.md
+      - assets/brand/**
+      - crates/app/**
+      - packaging/linux/**
+      - scripts/package-repos.sh
+      - .github/workflows/pages.yml
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time, never cancelled halfway.
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: website/.nvmrc
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: screenshots
+      # The origin and base path of the site, so a custom domain needs no code change.
+      - id: pages
+        uses: actions/configure-pages@v6
+      - run: npm ci
+
+      - name: Screenshots from the real views
+        run: npm run screenshots
+      - name: Publish one screenshot for app stores (AppStream metadata)
+        run: |
+          mkdir -p public/screenshots
+          cp src/assets/screenshots/light/browse.png public/screenshots/browse.png
+
+      - name: Releases, hosted installers and the update manifest
+        run: node scripts/sync-releases.mjs --download
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          # Fail rather than deploy a download page without files.
+          RELEASES_REQUIRED: '1'
+
+      - name: Build
+        run: npm run build
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          ASTRO_TELEMETRY_DISABLED: '1'
+
+      - name: APT and RPM repositories
+        working-directory: .
+        env:
+          KEY: ${{ secrets.PACKAGES_GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PACKAGES_GPG_PASSPHRASE }}
+          SITE: ${{ steps.pages.outputs.base_url }}
+        run: |
+          if [ -z "$KEY" ] || [ ! -f packaging/linux/coffer.asc ]; then
+            echo "::notice::No package signing key: the APT and RPM repositories are not published (scripts/setup-signing.sh)."
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends apt-utils createrepo-c
+          scripts/ci/import-gpg-key.sh
+          scripts/package-repos.sh website/dist "$SITE"
+
+      # GitHub Pages sites are limited to 1 GB; keep a margin.
+      - name: Site size
+        run: |
+          size=$(du -sb dist | cut -f1)
+          echo "The site is $((size / 1048576)) MiB."
+          if [ "$size" -gt 960000000 ]; then
+            echo "::error::The site is too large for GitHub Pages; lower KEEP_VERSIONS or MAX_DOWNLOAD_MB."
+            exit 1
+          fi
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: website/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

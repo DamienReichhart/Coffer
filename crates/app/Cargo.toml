@@ -1,0 +1,58 @@
+[package]
+name = "coffer"
+description = "A modern, native desktop interface for 7-Zip."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+publish = false
+default-run = "coffer"
+
+[[bin]]
+name = "coffer"
+path = "src/main.rs"
+
+[dependencies]
+coffer-core.workspace = true
+coffer-updater.workspace = true
+
+clap.workspace = true
+directories.workspace = true
+iced = { workspace = true, features = [
+    "wgpu",
+    "tiny-skia",
+    "crisp",
+    "x11",
+    "wayland",
+    "linux-theme-detection",
+    "thread-pool",
+    "tokio",
+    "svg",
+    "advanced",
+] }
+open.workspace = true
+png.workspace = true
+rfd = { workspace = true, features = ["xdg-portal", "wayland"] }
+semver.workspace = true
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["rt", "time", "fs"] }
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+iced_test.workspace = true
+tempfile.workspace = true
+
+[build-dependencies]
+winresource = "0.1.34"
+
+[[example]]
+name = "screenshots"
+test = false
+
+[lints]
+workspace = true

@@ -1,0 +1,71 @@
+---
+/* The formats 7-Zip handles, as the app shows them. */
+const create = ['7z', 'ZIP', 'TAR', 'GZIP', 'BZIP2', 'XZ', 'WIM'];
+const open = ['RAR', 'RAR5', 'ISO', 'DMG', 'CAB', 'ARJ', 'LZH', 'CPIO', 'RPM', 'DEB', 'MSI', 'VHD', 'NSIS', 'SquashFS'];
+---
+
+<section class="formats" aria-labelledby="formats-title">
+  <div class="container formats__inner">
+    <p id="formats-title" class="formats__title">Opens what your 7-Zip opens</p>
+    <ul class="formats__list">
+      {create.map((f) => <li class="formats__item formats__item--create">{f}</li>)}
+      {open.map((f) => <li class="formats__item">{f}</li>)}
+    </ul>
+    <p class="formats__note">
+      <span class="formats__dot"></span> Create and open · the rest open read-only. The exact list is your 7-Zip's.
+    </p>
+  </div>
+</section>
+
+<style>
+  .formats {
+    padding-block: 2.5rem;
+    border-block: 1px solid var(--z-border);
+  }
+  .formats__inner {
+    display: grid;
+    justify-items: center;
+    gap: 1.1rem;
+    text-align: center;
+  }
+  .formats__title {
+    color: var(--z-text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  .formats__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .formats__item {
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--z-border);
+    border-radius: 999px;
+    color: var(--z-text-muted);
+    font-family: var(--sl-font-mono);
+    font-size: 0.8rem;
+  }
+  .formats__item--create {
+    border-color: color-mix(in srgb, var(--z-primary) 45%, transparent);
+    background: var(--z-primary-soft);
+    color: var(--z-text);
+  }
+  .formats__note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--z-text-faint);
+    font-size: 0.8rem;
+  }
+  .formats__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--z-primary);
+  }
+</style>

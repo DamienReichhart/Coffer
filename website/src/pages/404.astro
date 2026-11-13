@@ -1,0 +1,48 @@
+---
+import Icon from '@/components/Icon.astro';
+import SiteLayout from '@/layouts/SiteLayout.astro';
+import { href } from '@/lib/href';
+import { NAME } from '@/lib/site';
+---
+
+<SiteLayout title={`Page not found — ${NAME}`} noindex>
+  <section class="section not-found">
+    <div class="container">
+      <p class="code">404</p>
+      <h1>This page isn’t in the archive.</h1>
+      <p>It may have moved, or the link may be mistyped. An older download? This site keeps the last five releases.</p>
+      <div class="actions">
+        <a class="button button--primary" href={href('/')}>Home</a>
+        <a class="button button--secondary" href={href('/docs/')}><Icon name="book" size={18} /> Docs</a>
+        <a class="button button--secondary" href={href('/download/')}><Icon name="download" size={18} /> Download</a>
+      </div>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .not-found .container {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    text-align: center;
+  }
+  .code {
+    color: var(--z-primary);
+    font-family: var(--sl-font-mono);
+    font-size: 1rem;
+  }
+  h1 {
+    font-size: clamp(2rem, 1.5rem + 2.4vw, 3rem);
+  }
+  p {
+    color: var(--z-text-muted);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+</style>

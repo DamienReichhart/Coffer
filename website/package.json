@@ -1,0 +1,43 @@
+{
+  "name": "coffer-website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The Coffer website and documentation, published to GitHub Pages.",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "lint": "eslint .",
+    "test": "node --test \"scripts/**/*.test.mjs\" \"src/**/*.test.ts\"",
+    "sync": "node scripts/sync-releases.mjs",
+    "screenshots": "cargo run --release --manifest-path ../Cargo.toml -p coffer --example screenshots -- src/assets/screenshots",
+    "brand": "node scripts/brand-images.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.9",
+    "@astrojs/sitemap": "3.7.4",
+    "@astrojs/starlight": "0.42.11",
+    "@fontsource-variable/inter": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "astro": "7.4.11",
+    "marked": "18.2.0",
+    "sharp": "0.35.5",
+    "starlight-links-validator": "0.27.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.20.5",
+    "eslint": "10.14.0",
+    "eslint-plugin-astro": "3.2.1",
+    "globals": "17.14.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
+  }
+}

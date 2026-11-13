@@ -1,0 +1,118 @@
+---
+import Icon, { type IconName } from '@/components/Icon.astro';
+
+const features: { icon: IconName; title: string; text: string }[] = [
+  {
+    icon: 'folderOpen',
+    title: 'Browse without unpacking',
+    text: 'Walk through folders with breadcrumbs, sort by size, packed size or date, search by name and see each archive’s type, method and ratio.',
+  },
+  {
+    icon: 'extract',
+    title: 'Extract exactly what you need',
+    text: 'Everything or just the selection, with or without folder paths, into a folder named after the archive. Choose how existing files are handled.',
+  },
+  {
+    icon: 'compress',
+    title: 'Create archives your way',
+    text: '7z, ZIP, TAR, GZIP, BZIP2, XZ and WIM, from Store to Ultra, with the method, dictionary size, solid blocks and threads you choose.',
+  },
+  {
+    icon: 'lock',
+    title: 'Encrypt, names included',
+    text: 'AES-256 password protection, and in 7z archives the file names too, so nobody even sees what is inside.',
+  },
+  {
+    icon: 'scissors',
+    title: 'Split into volumes',
+    text: 'Cut large archives into parts that fit an email, a FAT32 stick or a DVD, or a size of your own.',
+  },
+  {
+    icon: 'shieldCheck',
+    title: 'Test before you trust',
+    text: 'Check an archive’s integrity in one click, and know it opens before you delete the originals.',
+  },
+  {
+    icon: 'hash',
+    title: 'Checksums',
+    text: 'CRC32, CRC64, SHA-1, SHA-256 and BLAKE2sp for any file, with copy buttons and a field to compare against the expected value.',
+  },
+  {
+    icon: 'activity',
+    title: 'A queue you can watch',
+    text: 'Every job shows its progress and current file, can be cancelled, and leaves a log you can open when something goes wrong.',
+  },
+  {
+    icon: 'move',
+    title: 'Drag and drop',
+    text: 'Drop an archive to open it, or files and folders to compress them. Open archives straight from your file manager.',
+  },
+  {
+    icon: 'zap',
+    title: 'Native and fast',
+    text: 'Written in Rust with iced: a real desktop app, not a web page in a window. It starts in a blink and stays light.',
+  },
+  {
+    icon: 'refresh',
+    title: 'Updates that verify themselves',
+    text: 'New versions are checked against a SHA-256 checksum and a minisign signature before the installer runs.',
+  },
+  {
+    icon: 'monitor',
+    title: 'At home on every desktop',
+    text: 'Light and dark themes that follow your system, on Windows, macOS and Linux, for x64 and ARM64.',
+  },
+];
+---
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-heading section-heading--center" data-reveal>
+      <span class="eyebrow">Features</span>
+      <h2>Everything you do with archives, in one window</h2>
+      <p>
+        The everyday jobs take a click; the advanced switches are one panel away. Nothing to learn,
+        nothing to memorise.
+      </p>
+    </div>
+    <ul class="features" data-reveal>
+      {features.map((f) => (
+        <li class="card feature">
+          <span class="feature-icon"><Icon name={f.icon} /></span>
+          <h3>{f.title}</h3>
+          <p>{f.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .feature {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    padding: 1.5rem;
+    transition: border-color 0.2s ease;
+  }
+  .feature:hover {
+    border-color: var(--z-border-strong);
+  }
+  .feature h3 {
+    margin-top: 0.35rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+  .feature p {
+    color: var(--z-text-muted);
+    font-size: 0.94rem;
+  }
+</style>

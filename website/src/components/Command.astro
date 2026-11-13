@@ -1,0 +1,39 @@
+---
+/** A command line with a copy button. */
+import Icon from './Icon.astro';
+
+interface Props {
+  command: string;
+  label?: string;
+}
+const { command, label = 'Copy command' } = Astro.props;
+---
+
+<div class="command">
+  <code>{command}</code>
+  <button class="icon-button copy-button" type="button" aria-label={label} data-copy={command}>
+    <span class="copy-button__idle"><Icon name="copy" size={16} /></span>
+    <span class="copy-button__done" hidden><Icon name="check" size={16} /></span>
+  </button>
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>('.copy-button')) {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.copy ?? '');
+      } catch {
+        return;
+      }
+      const idle = button.querySelector<HTMLElement>('.copy-button__idle');
+      const done = button.querySelector<HTMLElement>('.copy-button__done');
+      if (!idle || !done) return;
+      idle.hidden = true;
+      done.hidden = false;
+      setTimeout(() => {
+        idle.hidden = false;
+        done.hidden = true;
+      }, 1500);
+    });
+  }
+</script>
