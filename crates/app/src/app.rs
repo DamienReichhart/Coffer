@@ -224,6 +224,10 @@ impl App {
     pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Navigate(screen) => {
+                if screen == Screen::Extract {
+                    // Volumes may have been added or moved since the archive was chosen.
+                    self.extract.refresh_volumes();
+                }
                 self.screen = screen;
                 Task::none()
             }
@@ -532,27 +536,27 @@ impl App {
     }
 
     fn dropped(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
-        // The volumes of a split archive count as one archive.
-        let paths = coffer_core::volumes::collapse(&paths);
         if paths.is_empty() {
             return Task::none();
         }
+        // To open or extract, the volumes of a split archive count as one
+        // archive; to compress, add or hash, every file counts.
+        let archives = coffer_core::volumes::collapse(&paths);
+        let one_archive = archives.len() == 1 && archives[0].is_file() && looks_like_archive(&archives[0]);
         match self.screen {
             Screen::Compress => {
                 self.compress.add_inputs(paths);
                 Task::none()
             }
             Screen::Checksums => self.update_checksums(checksums::Msg::Add(paths)),
-            Screen::Extract if paths.len() == 1 => {
-                self.extract.set_archive(paths[0].clone(), &self.settings.extract);
+            Screen::Extract if archives.len() == 1 => {
+                self.extract.set_archive(archives[0].clone(), &self.settings.extract);
                 Task::none()
             }
-            Screen::Browse if self.browser.is_some() && !(paths.len() == 1 && looks_like_archive(&paths[0])) => {
+            Screen::Browse if self.browser.is_some() && !one_archive => {
                 self.update_browse(browse::Msg::AddFiles(paths))
             }
-            _ if paths.len() == 1 && paths[0].is_file() && looks_like_archive(&paths[0]) => {
-                self.open(paths[0].clone(), None)
-            }
+            _ if one_archive => self.open(archives[0].clone(), None),
             _ => {
                 self.compress.add_inputs(paths);
                 self.screen = Screen::Compress;
@@ -646,13 +650,14 @@ pub const ARCHIVE_EXTENSIONS: &[&str] = &[
     "squashfs", "chm", "msi", "001", "z01", "r00", "zipx", "ar", "a", "udf", "hfs", "fat", "ntfs",
 ];
 
-/// Whether a path looks like an archive, or a volume of one, from its name.
+/// Whether a path looks like an archive from its name, or is a volume of a
+/// split archive whose other volumes are next to it.
 pub fn looks_like_archive(path: &Path) -> bool {
     let known = path
         .extension()
         .and_then(|e| e.to_str())
         .is_some_and(|e| ARCHIVE_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()));
-    known || path.file_name().and_then(|n| n.to_str()).and_then(coffer_core::volumes::parse_name).is_some()
+    known || coffer_core::volumes::detect(path).is_some()
 }
 
 /// Explains which volumes of a set are missing.
@@ -678,11 +683,21 @@ mod tests {
         assert!(looks_like_archive(Path::new("a.7z")));
         assert!(looks_like_archive(Path::new("A.TAR.GZ")));
         assert!(looks_like_archive(Path::new("backup.zip.001")));
-        assert!(looks_like_archive(Path::new("backup.zip.011")));
         assert!(looks_like_archive(Path::new("movie.part2.rar")));
-        assert!(looks_like_archive(Path::new("movie.r07")));
-        assert!(looks_like_archive(Path::new("site.z03")));
         assert!(!looks_like_archive(Path::new("notes.txt")));
         assert!(!looks_like_archive(Path::new("folder")));
+    }
+
+    #[test]
+    fn volumes_are_archives_only_with_their_set() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        for name in ["backup.zip.010", "backup.zip.011", "movie.rar", "movie.r07", "site.z03", "site.zip", "game.z64"] {
+            std::fs::write(dir.path().join(name), b"x").expect("write");
+        }
+        for name in ["backup.zip.011", "movie.r07", "site.z03"] {
+            assert!(looks_like_archive(&dir.path().join(name)), "{name}");
+        }
+        // A Nintendo 64 ROM is not the 64th volume of a spanned ZIP.
+        assert!(!looks_like_archive(&dir.path().join("game.z64")));
     }
 }

@@ -49,12 +49,14 @@ impl Cli {
         if !self.compress.is_empty() {
             return Launch::Compress(self.compress.into_iter().map(absolute).collect());
         }
-        // Opening every volume of a split archive opens the archive once.
         let paths: Vec<PathBuf> = self.paths.into_iter().map(absolute).collect();
-        let mut paths = coffer_core::volumes::collapse(&paths);
-        match paths.len() {
+        // Opening every volume of a split archive opens the archive once.
+        let mut archives = coffer_core::volumes::collapse(&paths);
+        match archives.len() {
             0 => Launch::Home,
-            1 if paths[0].is_file() && crate::app::looks_like_archive(&paths[0]) => Launch::Open(paths.remove(0)),
+            1 if archives[0].is_file() && crate::app::looks_like_archive(&archives[0]) => {
+                Launch::Open(archives.remove(0))
+            }
             _ => Launch::Compress(paths),
         }
     }
