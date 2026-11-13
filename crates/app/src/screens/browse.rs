@@ -68,6 +68,8 @@ pub struct Browser {
     pub sort: (Column, bool),
     pub password: Option<String>,
     pub show_info: bool,
+    /// The volumes, when the archive is split into several files.
+    pub volumes: Option<coffer_core::volumes::VolumeSet>,
 }
 
 impl Browser {
@@ -76,7 +78,9 @@ impl Browser {
         // An archive with a single top folder opens inside it.
         let roots = tree.children("");
         let cwd = if roots.len() == 1 && roots[0].is_dir { roots[0].path.clone() } else { String::new() };
+        let volumes = coffer_core::volumes::detect(&path);
         Self {
+            volumes,
             path,
             listing,
             tree,
@@ -90,8 +94,12 @@ impl Browser {
         }
     }
 
+    /// The archive's name; a split archive is named without its volume number.
     pub fn name(&self) -> &str {
-        self.path.file_name().and_then(|n| n.to_str()).unwrap_or("Archive")
+        match &self.volumes {
+            Some(set) => &set.name,
+            None => self.path.file_name().and_then(|n| n.to_str()).unwrap_or("Archive"),
+        }
     }
 
     /// The items to show: the current folder, or search results anywhere.
@@ -246,7 +254,7 @@ impl App {
                     self.toast(Tone::Warning, format!("7-Zip can't add files to {kind} archives."), None);
                     return Task::none();
                 };
-                if browser.listing.info.volumes.is_some_and(|v| v > 1) {
+                if browser.volumes.is_some() || browser.listing.info.volumes.is_some_and(|v| v > 1) {
                     self.toast(Tone::Warning, "Split archives can't be changed.", None);
                     return Task::none();
                 }
@@ -326,7 +334,7 @@ pub fn view(app: &App) -> El<'_> {
                 Icon::LoaderCircle,
                 Tone::Accent,
                 "Opening the archive…",
-                "Reading its contents with 7-Zip.",
+                "7-Zip is reading its contents.",
                 vec![],
             )
         } else {
@@ -334,24 +342,48 @@ pub fn view(app: &App) -> El<'_> {
                 Icon::FolderOpen,
                 Tone::Neutral,
                 "No archive is open",
-                "Open an archive, or drop one on this window.",
+                "Open one, or drop it on this window.",
                 vec![ui::primary(Some(Icon::FolderOpen), "Open an archive…", Some(Message::OpenDialog)).into()],
             )
         };
         return body;
     };
 
-    let content = column![toolbar(browser), table(browser), status_bar(browser)];
-    let main = container(content).width(Length::Fill).height(Length::Fill);
-    if browser.show_info {
-        row![main, rule::vertical(1).style(rule::weak), info_panel(browser)].into()
-    } else {
-        main.into()
-    }
+    iced::widget::responsive(move |size| layout(browser, size.width)).into()
 }
 
-fn toolbar(browser: &Browser) -> El<'_> {
-    let mut crumbs = row![].spacing(2).align_y(Alignment::Center);
+/// The width of the details panel.
+const PANEL_W: f32 = 272.0;
+
+/// The browser at a given width: narrow windows drop the details panel, then
+/// the secondary columns and the toolbar labels, so names always have room.
+fn layout(browser: &Browser, width: f32) -> El<'_> {
+    let panel = browser.show_info && width >= 900.0;
+    let compact = width - if panel { PANEL_W } else { 0.0 } < 720.0;
+    let content = column![
+        toolbar(browser, compact),
+        rule::horizontal(1).style(theme::hairline),
+        table(browser, compact),
+        rule::horizontal(1).style(theme::hairline),
+        status_bar(browser),
+    ];
+    // The table is always the first child, so it keeps its scroll position
+    // and the search its focus when the panel comes and goes.
+    let main = container(content).width(Length::Fill).height(Length::Fill);
+    let mut layout = row![main];
+    if panel {
+        layout = layout.push(rule::vertical(1).style(theme::hairline)).push(info_panel(browser));
+    }
+    layout.into()
+}
+
+/// A toolbar button: smaller than the form buttons, and only an icon when space is short.
+fn tool(i: Icon, label: &str, msg: Option<Message>, compact: bool) -> El<'_> {
+    if compact { ui::icon_button(i, label, msg) } else { ui::secondary(Some(i), label, msg).padding([5, 10]).into() }
+}
+
+fn toolbar(browser: &Browser, compact: bool) -> El<'_> {
+    let mut crumbs = row![].spacing(0).align_y(Alignment::Center);
     crumbs = crumbs.push(crumb(
         browser.name().to_owned(),
         String::new(),
@@ -365,7 +397,7 @@ fn toolbar(browser: &Browser) -> El<'_> {
                 path.push('/');
             }
             path.push_str(part);
-            crumbs = crumbs.push(icon(Icon::ChevronRight, 14.0));
+            crumbs = crumbs.push(icon(Icon::ChevronRight, 13.0));
             crumbs =
                 crumbs.push(crumb((*part).to_owned(), path.clone(), i == parts.len() - 1 && browser.search.is_empty()));
         }
@@ -377,10 +409,24 @@ fn toolbar(browser: &Browser) -> El<'_> {
             format!("Extract {}", plural(browser.selection.len(), "item")),
             Some(Message::Browse(Msg::ExtractSelected)),
         )
+        .padding([5, 12])
         .into()
     } else {
-        ui::primary(Some(Icon::FolderOutput), "Extract all", Some(Message::Browse(Msg::ExtractAll))).into()
+        ui::primary(Some(Icon::FolderOutput), "Extract all", Some(Message::Browse(Msg::ExtractAll)))
+            .padding([5, 12])
+            .into()
     };
+    let search = text_input("Search", &browser.search)
+        .id(SEARCH_ID)
+        .on_input(|q| Message::Browse(Msg::Search(q)))
+        .padding(iced::Padding::new(6.0).left(30.0).right(10.0))
+        .size(13)
+        .width(Length::Fixed(if compact { 170.0 } else { 220.0 }))
+        .style(theme::input);
+    let search = iced::widget::stack![
+        search,
+        container(icon(Icon::Search, 14.0)).padding(iced::Padding::new(0.0).left(10.0)).center_y(Length::Fill)
+    ];
     let top = row![
         ui::icon_button(
             Icon::ArrowUp,
@@ -392,90 +438,83 @@ fn toolbar(browser: &Browser) -> El<'_> {
                 .direction(scrollable::Direction::Horizontal(scrollable::Scrollbar::new().width(0).scroller_width(0)))
         )
         .width(Length::Fill),
-        text_input("Search this archive", &browser.search)
-            .id(SEARCH_ID)
-            .on_input(|q| Message::Browse(Msg::Search(q)))
-            .icon(text_input::Icon {
-                font: fonts::REGULAR,
-                code_point: '⌕',
-                size: Some(iced::Pixels(15.0)),
-                spacing: 8.0,
-                side: text_input::Side::Left
-            })
-            .padding([7, 10])
-            .width(Length::Fixed(240.0))
-            .style(theme::input),
+        search,
     ]
     .spacing(8)
     .align_y(Alignment::Center);
     let actions = row![
-        ui::secondary(Some(Icon::FilePlus), "Add", Some(Message::Browse(Msg::AddDialog))),
-        ui::secondary(Some(Icon::ShieldCheck), "Test", Some(Message::Browse(Msg::Test))),
-        ui::secondary(
-            Some(Icon::Pencil),
-            "Rename",
-            (browser.selection.len() == 1).then_some(Message::Browse(Msg::Rename))
-        ),
-        ui::secondary(Some(Icon::Trash2), "Delete", has_selection.then_some(Message::Browse(Msg::Delete))),
+        extract,
+        tool(Icon::FilePlus, "Add", Some(Message::Browse(Msg::AddDialog)), compact),
+        tool(Icon::ShieldCheck, "Test", Some(Message::Browse(Msg::Test)), compact),
+        tool(Icon::Pencil, "Rename", (browser.selection.len() == 1).then_some(Message::Browse(Msg::Rename)), compact),
+        tool(Icon::Trash2, "Delete", has_selection.then_some(Message::Browse(Msg::Delete)), compact),
         Space::new().width(Length::Fill),
         ui::icon_button(Icon::RefreshCw, "Reload (F5)", Some(Message::Browse(Msg::Reload))),
-        ui::icon_button(Icon::Info, "Archive details", Some(Message::Browse(Msg::ToggleInfo))),
+        ui::icon_button(
+            Icon::Info,
+            if browser.show_info { "Hide the details" } else { "Show the details" },
+            Some(Message::Browse(Msg::ToggleInfo))
+        ),
         ui::icon_button(Icon::X, "Close the archive", Some(Message::CloseArchive)),
-        extract,
     ]
-    .spacing(8)
+    .spacing(6)
     .align_y(Alignment::Center);
-    container(column![top, actions].spacing(10)).padding([12, 16]).width(Length::Fill).style(theme::toolbar).into()
+    container(column![top, actions].spacing(10)).padding([10, 14]).width(Length::Fill).style(theme::toolbar).into()
 }
 
 fn crumb<'a>(label: String, path: String, current: bool) -> El<'a> {
-    button(text(label).font(if current { fonts::SEMIBOLD } else { fonts::REGULAR }))
-        .padding([5, 8])
-        .style(theme::ghost)
-        .on_press(Message::Browse(Msg::Enter(path)))
-        .into()
+    let label = text(label).size(13).font(if current { fonts::SEMIBOLD } else { fonts::REGULAR });
+    let label = if current { label } else { label.style(theme::muted) };
+    button(label).padding([4, 6]).style(theme::ghost).on_press(Message::Browse(Msg::Enter(path))).into()
 }
 
-const SIZE_W: f32 = 96.0;
-const PACKED_W: f32 = 96.0;
-const DATE_W: f32 = 150.0;
-const METHOD_W: f32 = 120.0;
+const SIZE_W: f32 = 92.0;
+const PACKED_W: f32 = 92.0;
+const DATE_W: f32 = 140.0;
+const METHOD_W: f32 = 110.0;
 
 fn header_cell<'a>(browser: &Browser, column: Column, label: &'a str, width: Length, right: bool) -> El<'a> {
     let (sorted, ascending) = browser.sort;
-    let arrow = if sorted == column { if ascending { " ↑" } else { " ↓" } } else { "" };
+    let active = sorted == column;
+    let arrow = if active { if ascending { " ↑" } else { " ↓" } } else { "" };
     let label = text(format!("{label}{arrow}")).size(12).font(fonts::MEDIUM);
+    let label = if active { label } else { label.style(theme::muted) };
     let label = if right { container(label).align_right(Length::Fill) } else { container(label).width(Length::Fill) };
-    button(label).padding([6, 6]).width(width).style(theme::ghost).on_press(Message::Browse(Msg::Sort(column))).into()
+    button(label).padding([5, 6]).width(width).style(theme::ghost).on_press(Message::Browse(Msg::Sort(column))).into()
 }
 
-fn table(browser: &Browser) -> El<'_> {
-    let header = container(
-        row![
-            Space::new().width(26),
-            header_cell(browser, Column::Name, "Name", Length::Fill, false),
-            header_cell(browser, Column::Size, "Size", Length::Fixed(SIZE_W), true),
-            header_cell(browser, Column::Packed, "Packed", Length::Fixed(PACKED_W), true),
-            header_cell(browser, Column::Modified, "Modified", Length::Fixed(DATE_W), false),
-            header_cell(browser, Column::Method, "Method", Length::Fixed(METHOD_W), false),
-        ]
-        .spacing(4)
-        .align_y(Alignment::Center),
-    )
-    .padding([2, 14])
-    .style(theme::table_header);
+fn table(browser: &Browser, compact: bool) -> El<'_> {
+    let mut cells = row![
+        Space::new().width(24),
+        header_cell(browser, Column::Name, "Name", Length::Fill, false),
+        header_cell(browser, Column::Size, "Size", Length::Fixed(SIZE_W), true),
+    ]
+    .spacing(4)
+    .align_y(Alignment::Center);
+    if !compact {
+        cells = cells.push(header_cell(browser, Column::Packed, "Packed", Length::Fixed(PACKED_W), true));
+    }
+    cells = cells.push(header_cell(browser, Column::Modified, "Modified", Length::Fixed(DATE_W), false));
+    if !compact {
+        cells = cells.push(header_cell(browser, Column::Method, "Method", Length::Fixed(METHOD_W), false));
+    }
+    let header = container(cells).padding([3, 14]).style(theme::table_header);
 
     let items = browser.items();
     if items.is_empty() {
         let message = if browser.search.is_empty() { "This folder is empty." } else { "Nothing matches your search." };
-        return column![header, ui::empty_state(Icon::Search, Tone::Neutral, message, "", vec![])]
-            .height(Length::Fill)
-            .into();
+        return column![
+            header,
+            rule::horizontal(1).style(theme::hairline),
+            ui::empty_state(Icon::Search, Tone::Neutral, message, "", vec![])
+        ]
+        .height(Length::Fill)
+        .into();
     }
     let total = items.len();
     let searching = !browser.search.trim().is_empty();
-    let rows = items.into_iter().take(MAX_ROWS).enumerate().map(|(i, node)| entry_row(browser, node, i, searching));
-    let mut list = column(rows).spacing(1).padding(Padding::new(6.0).left(8.0).right(14.0));
+    let rows = items.into_iter().take(MAX_ROWS).map(|node| entry_row(browser, node, searching, compact));
+    let mut list = column(rows).spacing(0).padding(Padding::new(4.0).left(8.0).right(14.0));
     if total > MAX_ROWS {
         list = list.push(
             container(ui::small(format!("Showing {MAX_ROWS} of {total} items. Search to find the others.")))
@@ -483,10 +522,16 @@ fn table(browser: &Browser) -> El<'_> {
                 .center_x(Length::Fill),
         );
     }
-    column![header, scrollable(list).style(theme::scroll).height(Length::Fill)].height(Length::Fill).into()
+    column![
+        header,
+        rule::horizontal(1).style(theme::hairline),
+        scrollable(list).style(theme::scroll).height(Length::Fill)
+    ]
+    .height(Length::Fill)
+    .into()
 }
 
-fn entry_row<'a>(browser: &Browser, node: &'a Node, index: usize, searching: bool) -> El<'a> {
+fn entry_row<'a>(browser: &Browser, node: &'a Node, searching: bool, compact: bool) -> El<'a> {
     let selected = browser.selection.contains(&node.path);
     let file_icon = if node.is_dir {
         Icon::Folder
@@ -495,58 +540,62 @@ fn entry_row<'a>(browser: &Browser, node: &'a Node, index: usize, searching: boo
     } else {
         Icon::File
     };
-    let tint: fn(&theme::Tokens) -> iced::Color = if node.is_dir { |t| t.primary } else { |t| t.muted };
+    let tint: fn(&theme::Tokens) -> iced::Color = if node.is_dir { |t| t.primary } else { |t| t.subtle };
     let name: El<'a> = if searching {
-        column![text(node.name.as_str()), ui::small(parent(&node.path).unwrap_or("/").to_owned())].spacing(0).into()
+        row![
+            text(node.name.as_str()).size(13),
+            ui::small(parent(&node.path).unwrap_or("/").to_owned()).wrapping(text::Wrapping::None),
+        ]
+        .spacing(8)
+        .align_y(Alignment::Center)
+        .into()
     } else {
-        text(node.name.as_str()).into()
+        text(node.name.as_str()).size(13).wrapping(text::Wrapping::None).into()
     };
     let size = if node.is_dir { plural(node.files as usize, "file") } else { bytes(node.size) };
     let packed = node.packed.map_or_else(|| "—".to_owned(), bytes);
-    let cells = row![
-        container(crate::icons::tinted(file_icon, 17.0, tint)).width(26),
-        container(name).width(Length::Fill).padding([0, 6]),
-        container(text(size).size(13).style(theme::muted))
-            .width(SIZE_W)
-            .align_right(Length::Fixed(SIZE_W))
-            .padding([0, 6]),
-        container(text(packed).size(13).style(theme::muted))
-            .width(PACKED_W)
-            .align_right(Length::Fixed(PACKED_W))
-            .padding([0, 6]),
-        container(text(node.modified.clone().unwrap_or_default()).size(13).style(theme::muted))
-            .width(DATE_W)
-            .padding([0, 6]),
-        container(text(node.method.clone().unwrap_or_default()).size(12).style(theme::subtle))
-            .width(METHOD_W)
-            .padding([0, 6])
-            .clip(true),
+    let cell = |content: String, width: f32, right: bool| -> El<'a> {
+        let t = text(content).size(12).style(theme::muted).wrapping(text::Wrapping::None);
+        let c = container(t).width(width).padding([0, 6]).clip(true);
+        if right { c.align_right(Length::Fixed(width)).into() } else { c.into() }
+    };
+    let mut cells = row![
+        container(crate::icons::tinted(file_icon, 15.0, tint)).width(24),
+        container(name).width(Length::Fill).padding([0, 6]).clip(true),
+        cell(size, SIZE_W, true),
     ]
     .spacing(4)
     .align_y(Alignment::Center);
-    let row_box = container(cells).padding([6, 6]).width(Length::Fill).style(theme::row(selected, index % 2 == 1));
+    if !compact {
+        cells = cells.push(cell(packed, PACKED_W, true));
+    }
+    cells = cells.push(cell(node.modified.clone().unwrap_or_default(), DATE_W, false));
+    if !compact {
+        cells = cells.push(cell(node.method.clone().unwrap_or_default(), METHOD_W, false));
+    }
+    let row_box = container(cells).padding([5, 6]).width(Length::Fill).style(theme::row(selected));
     mouse_area(row_box)
         .on_press(Message::Browse(Msg::Select(node.path.clone())))
         .on_double_click(Message::Browse(Msg::Activate(node.path.clone())))
-        .interaction(iced::mouse::Interaction::Pointer)
         .into()
 }
 
 fn status_bar(browser: &Browser) -> El<'_> {
     let listing = &browser.listing;
-    let left = format!(
-        "{} · {} · {}",
-        plural(listing.file_count(), "file"),
-        bytes(listing.total_size()),
-        listing.info.physical_size.map(|p| format!("{} on disk", bytes(p))).unwrap_or_default(),
-    );
+    let mut left = format!("{} · {}", plural(listing.file_count(), "file"), bytes(listing.total_size()));
+    if let Some(size) = listing.archive_size() {
+        left = format!("{left} · {} on disk", bytes(size));
+    }
+    if let Some(set) = &browser.volumes {
+        left = format!("{left} · {}", plural(set.volumes.len(), "volume"));
+    }
     let right = if browser.selection.is_empty() {
         String::new()
     } else {
         format!("{} selected · {}", plural(browser.selection.len(), "item"), bytes(browser.selection_size()))
     };
     container(row![ui::small(left), Space::new().width(Length::Fill), ui::small(right)].align_y(Alignment::Center))
-        .padding([8, 16])
+        .padding([6, 16])
         .width(Length::Fill)
         .style(theme::toolbar)
         .into()
@@ -559,10 +608,10 @@ fn info_panel(browser: &Browser) -> El<'_> {
     let mut props = vec![
         ("Format", info.kind.clone()),
         ("Files", listing.file_count().to_string()),
-        ("Unpacked size", bytes(listing.total_size())),
+        ("Unpacked", bytes(listing.total_size())),
     ];
-    if let Some(physical) = info.physical_size {
-        props.push(("Archive size", bytes(physical)));
+    if let Some(physical) = listing.archive_size() {
+        props.push(("On disk", bytes(physical)));
         if let Some(r) = ratio(listing.total_size(), physical) {
             props.push(("Ratio", r));
         }
@@ -574,21 +623,26 @@ fn info_panel(browser: &Browser) -> El<'_> {
         props.push(("Solid", yes_no(solid)));
     }
     props.push(("Encrypted", yes_no(info.encrypted)));
-    if let Some(volumes) = info.volumes {
-        props.push(("Volumes", volumes.to_string()));
+    match (&browser.volumes, info.volumes) {
+        (Some(set), _) => props.push(("Volumes", format!("{} ({})", set.volumes.len(), set.scheme.label()))),
+        (None, Some(volumes)) if volumes > 1 => props.push(("Volumes", volumes.to_string())),
+        _ => {}
     }
 
+    let label = |s: &'static str| text(s).size(11).font(fonts::MEDIUM).style(theme::subtle);
     let mut panel = column![
-        ui::icon_tile(Icon::FileArchive, Tone::Accent, 44.0),
-        text(browser.name()).font(fonts::SEMIBOLD).size(15),
-        ui::small(browser.path.parent().map(|p| p.display().to_string()).unwrap_or_default()),
-        rule::horizontal(1).style(rule::weak),
+        column![
+            text(browser.name()).font(fonts::SEMIBOLD).size(14),
+            ui::small(browser.path.parent().map(|p| p.display().to_string()).unwrap_or_default()),
+        ]
+        .spacing(2),
+        label("Archive"),
         ui::properties(props),
     ]
-    .spacing(10);
+    .spacing(12);
 
     if let Some(comment) = &info.comment {
-        panel = panel.push(column![ui::small("Comment"), text(comment.as_str()).size(13)].spacing(4));
+        panel = panel.push(column![label("Comment"), text(comment.as_str()).size(13)].spacing(4));
     }
     for warning in &info.warnings {
         panel =
@@ -614,15 +668,22 @@ fn info_panel(browser: &Browser) -> El<'_> {
         if node.is_dir {
             details.push(("Contains", plural(node.files as usize, "file")));
         }
-        panel = panel.push(rule::horizontal(1).style(rule::weak));
-        panel = panel.push(ui::heading("Selection").size(13));
+        panel = panel.push(rule::horizontal(1).style(theme::hairline));
+        panel = panel.push(label("Selection"));
         panel = panel.push(ui::properties(details));
+    } else if browser.selection.len() > 1 {
+        panel = panel.push(rule::horizontal(1).style(theme::hairline));
+        panel = panel.push(label("Selection"));
+        panel = panel.push(ui::properties(vec![
+            ("Items", browser.selection.len().to_string()),
+            ("Size", bytes(browser.selection_size())),
+        ]));
     }
 
-    scrollable(container(panel).padding(18))
-        .style(theme::scroll)
-        .width(Length::Fixed(290.0))
+    container(scrollable(container(panel).padding(16)).style(theme::scroll).height(Length::Fill))
+        .width(Length::Fixed(PANEL_W))
         .height(Length::Fill)
+        .style(theme::side_panel)
         .into()
 }
 
@@ -635,9 +696,12 @@ pub fn default_destination(archive: &Path, into_folder: bool) -> PathBuf {
     dir.join(archive_stem(archive))
 }
 
-/// `photos.tar.gz` → `photos`, `backup.7z.001` → `backup`.
+/// `photos.tar.gz` → `photos`, `backup.7z.001` → `backup`, `movie.part2.rar` → `movie`.
 pub fn archive_stem(archive: &Path) -> String {
     let mut name = archive.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    if let Some(part) = coffer_core::volumes::parse_name(&name) {
+        name = part.display_name();
+    }
     while let Some((stem, ext)) = name.rsplit_once('.') {
         let ext = ext.to_ascii_lowercase();
         let known = crate::app::ARCHIVE_EXTENSIONS.contains(&ext.as_str()) || ext.chars().all(|c| c.is_ascii_digit());
@@ -657,6 +721,10 @@ mod tests {
     fn stems() {
         assert_eq!(archive_stem(Path::new("/x/photos.tar.gz")), "photos");
         assert_eq!(archive_stem(Path::new("backup.7z.001")), "backup");
+        assert_eq!(archive_stem(Path::new("backup.zip.011")), "backup");
+        assert_eq!(archive_stem(Path::new("movie.part02.rar")), "movie");
+        assert_eq!(archive_stem(Path::new("movie.r03")), "movie");
+        assert_eq!(archive_stem(Path::new("site.z01")), "site");
         assert_eq!(archive_stem(Path::new("report.v2.zip")), "report.v2");
         assert_eq!(archive_stem(Path::new(".zip")), ".zip");
         assert_eq!(default_destination(Path::new("/x/a.zip"), true), Path::new("/x/a"));

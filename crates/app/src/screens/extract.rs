@@ -1,10 +1,12 @@
 //! Extracting an archive (or a selection from it) to a folder.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use coffer_core::format::bytes;
+use coffer_core::volumes::{self, VolumeSet};
 use coffer_core::{ExtractOptions, OverwriteMode};
 use iced::widget::{column, row, text};
-use iced::{Alignment, Length, Task};
+use iced::{Alignment, Task};
 
 use crate::app::{App, Message, Screen};
 use crate::icons::Icon;
@@ -43,6 +45,8 @@ pub struct Form {
     pub open_when_done: bool,
     /// Entries chosen in the archive browser; empty extracts everything.
     pub only: Vec<String>,
+    /// The volumes, when the archive is split into several files.
+    pub volumes: Option<VolumeSet>,
 }
 
 impl Form {
@@ -58,12 +62,30 @@ impl Form {
             show_password: false,
             open_when_done: defaults.open_when_done,
             only: Vec::new(),
+            volumes: None,
         }
     }
 
     pub fn set_archive(&mut self, archive: PathBuf, defaults: &ExtractDefaults) {
         *self = Self { archive: archive.display().to_string(), ..Self::from_defaults(defaults) };
+        self.find_volumes();
         self.suggest();
+    }
+
+    /// Looks for the other volumes when the archive is one of several files.
+    fn find_volumes(&mut self) {
+        let archive = self.archive.trim();
+        self.volumes = if archive.is_empty() { None } else { volumes::detect(Path::new(archive)) };
+    }
+
+    /// Looks again for the volumes, which may have been moved in or renamed.
+    pub fn refresh_volumes(&mut self) {
+        self.find_volumes();
+    }
+
+    /// The file 7-Zip is given: the first volume of a split archive.
+    pub fn archive_path(&self) -> PathBuf {
+        self.volumes.as_ref().map_or_else(|| PathBuf::from(self.archive.trim()), |set| set.primary.clone())
     }
 
     fn suggest(&mut self) {
@@ -74,15 +96,19 @@ impl Form {
             default_destination(&PathBuf::from(self.archive.trim()), self.into_folder).display().to_string();
     }
 
-    pub fn problem(&self) -> Option<&'static str> {
+    pub fn problem(&self) -> Option<String> {
         if self.archive.trim().is_empty() {
-            return Some("Choose the archive to extract.");
+            return Some("Choose the archive to extract.".into());
         }
         if !PathBuf::from(self.archive.trim()).is_file() {
-            return Some("The archive doesn't exist.");
+            return Some("The archive doesn't exist.".into());
+        }
+        if let Some(set) = self.volumes.as_ref().filter(|s| !s.is_complete()) {
+            let n = set.missing.len();
+            return Some(if n == 1 { "A volume is missing.".into() } else { format!("{n} volumes are missing.") });
         }
         if self.destination.trim().is_empty() {
-            return Some("Choose where to extract.");
+            return Some("Choose where to extract.".into());
         }
         None
     }
@@ -95,6 +121,7 @@ impl App {
             Msg::Archive(value) => {
                 form.archive = value;
                 form.only.clear();
+                form.find_volumes();
                 form.suggest();
             }
             Msg::BrowseArchive => {
@@ -132,11 +159,12 @@ impl App {
             Msg::OpenWhenDone(on) => form.open_when_done = on,
             Msg::ClearSelection => form.only.clear(),
             Msg::Start => {
+                form.find_volumes();
                 if form.problem().is_some() {
                     return Task::none();
                 }
                 let spec = Spec::Extract {
-                    archive: PathBuf::from(form.archive.trim()),
+                    archive: form.archive_path(),
                     options: ExtractOptions {
                         destination: PathBuf::from(form.destination.trim()),
                         overwrite: form.overwrite,
@@ -158,54 +186,53 @@ impl App {
 pub fn view(app: &App) -> El<'_> {
     let form = &app.extract;
     let header = ui::page_header("Extract", "Unpack an archive into a folder.", vec![]);
-    let mut body = column![].spacing(ui::L);
+    let mut body = column![].spacing(ui::XL);
 
     if !form.only.is_empty() {
         body = body.push(ui::banner(
             Tone::Accent,
             Icon::ListFilter,
-            text(format!("Only the {} you selected will be extracted.", plural(form.only.len(), "item"))).into(),
+            text(format!("Only the {} you selected will be extracted.", plural(form.only.len(), "item")))
+                .size(13)
+                .into(),
             vec![ui::ghost(None, "Extract everything instead", Some(Message::Extract(Msg::ClearSelection))).into()],
         ));
     }
 
-    body = body.push(ui::section(
+    let mut archive_rows = vec![ui::field(
         "Archive",
-        None,
+        Some("Any format your 7-Zip reads. For a split archive, any of its volumes."),
+        ui::path_input(
+            "Choose an archive",
+            &form.archive,
+            |v| Message::Extract(Msg::Archive(v)),
+            Message::Extract(Msg::BrowseArchive),
+        ),
+    )];
+    if let Some(set) = &form.volumes {
+        archive_rows.push(volumes_field(set));
+    }
+    archive_rows.push(ui::field(
+        "Password",
+        Some("Only for encrypted archives."),
         column![
-            ui::field(
-                "Archive",
-                Some("7z, ZIP, RAR, TAR, ISO and every format your 7-Zip reads."),
-                ui::path_input(
-                    "Choose an archive",
-                    &form.archive,
-                    |v| Message::Extract(Msg::Archive(v)),
-                    Message::Extract(Msg::BrowseArchive)
-                ),
-            ),
-            ui::field(
-                "Password",
-                Some("Only for encrypted archives."),
-                column![
-                    ui::input("No password", &form.password, |v| Message::Extract(Msg::Password(v)))
-                        .secure(!form.show_password),
-                    iced::widget::checkbox(form.show_password)
-                        .label("Show the password")
-                        .on_toggle(|v| Message::Extract(Msg::ShowPassword(v)))
-                        .size(16),
-                ]
-                .spacing(8)
-                .into(),
-            ),
+            ui::input("No password", &form.password, |v| Message::Extract(Msg::Password(v)))
+                .secure(!form.show_password),
+            iced::widget::checkbox(form.show_password)
+                .label("Show")
+                .on_toggle(|v| Message::Extract(Msg::ShowPassword(v)))
+                .size(15)
+                .text_size(13),
         ]
-        .spacing(16)
+        .spacing(8)
         .into(),
     ));
+    body = body.push(ui::section("Source", None, ui::rows(archive_rows)));
 
     body = body.push(ui::section(
         "Destination",
         None,
-        column![
+        ui::rows(vec![
             ui::field(
                 "Extract to",
                 None,
@@ -213,49 +240,96 @@ pub fn view(app: &App) -> El<'_> {
                     "Choose a folder",
                     &form.destination,
                     |v| Message::Extract(Msg::Destination(v)),
-                    Message::Extract(Msg::BrowseDestination)
+                    Message::Extract(Msg::BrowseDestination),
                 ),
             ),
             ui::switch(
                 "Create a folder named after the archive",
                 Some("Keeps loose files from spilling into the destination."),
                 form.into_folder,
-                |v| Message::Extract(Msg::IntoFolder(v))
+                |v| Message::Extract(Msg::IntoFolder(v)),
             ),
             ui::switch(
                 "Keep the folder structure",
                 Some("Off puts every file directly in the destination."),
                 form.keep_paths,
-                |v| Message::Extract(Msg::KeepPaths(v))
+                |v| Message::Extract(Msg::KeepPaths(v)),
             ),
             ui::field(
                 "When a file already exists",
                 None,
-                ui::select(&OverwriteMode::ALL, Some(form.overwrite), |m| Message::Extract(Msg::Overwrite(m)))
+                ui::select(&OverwriteMode::ALL, Some(form.overwrite), |m| Message::Extract(Msg::Overwrite(m))),
             ),
-            ui::switch("Open the folder when done", None, form.open_when_done, |v| Message::Extract(
-                Msg::OpenWhenDone(v)
-            )),
-        ]
-        .spacing(16)
-        .into(),
+            ui::switch("Open the folder when done", None, form.open_when_done, |v| {
+                Message::Extract(Msg::OpenWhenDone(v))
+            }),
+        ]),
     ));
 
-    let start = ui::primary(
-        Some(Icon::FolderOutput),
-        "Extract",
-        form.problem().is_none().then_some(Message::Extract(Msg::Start)),
-    );
-    let footer: El<'_> = match form.problem() {
-        Some(problem) if !form.archive.is_empty() => {
-            row![ui::banner(Tone::Warning, Icon::CircleAlert, text(problem).into(), vec![]), start]
-                .spacing(12)
-                .align_y(Alignment::Center)
-                .into()
-        }
-        _ => row![ui::fill(), start].into(),
+    let problem = form.problem();
+    let start =
+        ui::primary(Some(Icon::FolderOutput), "Extract", problem.is_none().then_some(Message::Extract(Msg::Start)));
+    let shown = problem.filter(|_| !form.archive.is_empty());
+    ui::form_page(header, body.into(), ui::form_actions(shown, vec![start.into()]))
+}
+
+/// The volumes of a split archive: how many, how big, and which are missing.
+fn volumes_field(set: &VolumeSet) -> El<'_> {
+    let summary = format!("{} · {} · {}", set.scheme.label(), plural(set.volumes.len(), "file"), bytes(set.total_size));
+    let status: El<'_> = if set.is_complete() {
+        row![crate::icons::tinted(Icon::CircleCheck, 14.0, |t| t.success), ui::small("All volumes found")]
+            .spacing(6)
+            .align_y(Alignment::Center)
+            .into()
+    } else {
+        text(crate::app::missing_volumes_message(set)).size(12).style(crate::theme::tone_text(Tone::Warning)).into()
     };
-    body = body.push(footer);
-    let _ = Length::Fill;
-    ui::page(header, body.into())
+    let first = set.primary.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    ui::field(
+        "Volumes",
+        None,
+        iced::widget::container(
+            column![
+                row![crate::icons::icon(Icon::Layers, 15.0), text(summary).size(13)]
+                    .spacing(8)
+                    .align_y(Alignment::Center),
+                ui::small(format!("7-Zip starts from {first}.")),
+                status,
+            ]
+            .spacing(4),
+        )
+        .width(iced::Length::Fill)
+        .into(),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn any_volume_extracts_the_whole_archive() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        for n in 1..=11 {
+            std::fs::write(dir.path().join(format!("backup.zip.{n:03}")), b"x").expect("write");
+        }
+        let mut form = Form::from_defaults(&ExtractDefaults::default());
+        form.set_archive(dir.path().join("backup.zip.007"), &ExtractDefaults::default());
+        let set = form.volumes.as_ref().expect("a split archive");
+        assert_eq!(set.volumes.len(), 11);
+        assert_eq!(form.archive_path(), dir.path().join("backup.zip.001"));
+        if ExtractDefaults::default().into_folder {
+            assert_eq!(PathBuf::from(&form.destination), dir.path().join("backup"));
+        }
+        assert_eq!(form.problem(), None);
+
+        std::fs::remove_file(dir.path().join("backup.zip.004")).expect("remove");
+        form.refresh_volumes();
+        assert_eq!(form.problem().as_deref(), Some("A volume is missing."));
+
+        // Putting it back unblocks the form.
+        std::fs::write(dir.path().join("backup.zip.004"), b"x").expect("write");
+        form.refresh_volumes();
+        assert_eq!(form.problem(), None);
+    }
 }

@@ -18,12 +18,15 @@ pub const L: f32 = 16.0;
 pub const XL: f32 = 24.0;
 pub const XXL: f32 = 32.0;
 
+/// The widest a page's content gets: forms and lists stay readable on wide windows.
+pub const CONTENT_WIDTH: f32 = 860.0;
+
 pub fn title<'a>(content: impl text::IntoFragment<'a>) -> text::Text<'a> {
-    text(content).size(22).font(fonts::SEMIBOLD)
+    text(content).size(20).font(fonts::SEMIBOLD)
 }
 
 pub fn heading<'a>(content: impl text::IntoFragment<'a>) -> text::Text<'a> {
-    text(content).size(15).font(fonts::SEMIBOLD)
+    text(content).size(14).font(fonts::SEMIBOLD)
 }
 
 pub fn strong<'a>(content: impl text::IntoFragment<'a>) -> text::Text<'a> {
@@ -51,17 +54,17 @@ pub fn button_with<'a>(
 ) -> button::Button<'a, Message> {
     let content: El<'a> = match leading {
         Some(i) => row![
-            icon(i, 16.0).style(move |theme: &Theme, _| iced::widget::svg::Style {
+            icon(i, 15.0).style(move |theme: &Theme, _| iced::widget::svg::Style {
                 color: Some(style(theme, button::Status::Active).text_color),
             }),
-            text(label).font(fonts::MEDIUM).wrapping(text::Wrapping::None)
+            text(label).size(13).font(fonts::MEDIUM).wrapping(text::Wrapping::None)
         ]
-        .spacing(S)
+        .spacing(7)
         .align_y(Alignment::Center)
         .into(),
-        None => text(label).font(fonts::MEDIUM).wrapping(text::Wrapping::None).into(),
+        None => text(label).size(13).font(fonts::MEDIUM).wrapping(text::Wrapping::None).into(),
     };
-    button(content).padding([9, 16]).style(style).on_press_maybe(on_press)
+    button(content).padding([7, 13]).style(style).on_press_maybe(on_press)
 }
 
 pub fn primary<'a>(
@@ -93,20 +96,20 @@ pub fn ghost<'a>(
     label: impl text::IntoFragment<'a>,
     msg: Option<Message>,
 ) -> button::Button<'a, Message> {
-    button_with(i, label, theme::ghost, msg).padding([6, 10])
+    button_with(i, label, theme::ghost, msg).padding([5, 9])
 }
 
 /// A square icon-only button with a tooltip.
 pub fn icon_button(i: Icon, tip: &str, msg: Option<Message>) -> El<'_> {
     let b =
-        button(container(icon(i, 17.0)).center(Length::Fixed(20.0))).padding(7).style(theme::ghost).on_press_maybe(msg);
+        button(container(icon(i, 16.0)).center(Length::Fixed(18.0))).padding(6).style(theme::ghost).on_press_maybe(msg);
     tooltip(b, container(text(tip).size(12)).padding([4, 8]).style(theme::modal), tooltip::Position::Bottom)
         .gap(4)
         .into()
 }
 
 pub fn badge<'a>(label: impl text::IntoFragment<'a>, tone: Tone) -> El<'a> {
-    container(text(label).size(11).font(fonts::MEDIUM)).padding([2, 8]).style(theme::badge(tone)).into()
+    container(text(label).size(11).font(fonts::MEDIUM)).padding([1, 6]).style(theme::badge(tone)).into()
 }
 
 /// A rounded tile holding an icon, used by cards and empty states.
@@ -124,49 +127,126 @@ pub fn icon_tile<'a>(i: Icon, tone: Tone, size: f32) -> El<'a> {
         .into()
 }
 
-/// The header of a page: title, description and actions on the right.
+/// The header of a page: title, a one-line description and actions on the right.
 pub fn page_header<'a>(heading_text: &'a str, description: &'a str, actions: Vec<El<'a>>) -> El<'a> {
-    row![
-        column![title(heading_text), muted(description)].spacing(XS).width(Length::Fill),
-        row(actions).spacing(S).align_y(Alignment::Center),
-    ]
-    .align_y(Alignment::Center)
-    .spacing(L)
-    .into()
+    let mut left = column![title(heading_text)].spacing(2).width(Length::Fill);
+    if !description.is_empty() {
+        left = left.push(muted(description).size(13));
+    }
+    row![left, row(actions).spacing(S).align_y(Alignment::Center)].align_y(Alignment::Center).spacing(L).into()
 }
 
-/// A page: a header above scrolling content, with comfortable margins.
+fn centered<'a>(content: impl Into<El<'a>>, padding: Padding) -> El<'a> {
+    container(container(content).max_width(CONTENT_WIDTH)).padding(padding).center_x(Length::Fill).into()
+}
+
+/// A page: a header above scrolling content.
 pub fn page<'a>(header: El<'a>, body: El<'a>) -> El<'a> {
-    let content = column![header, body].spacing(XL).max_width(1100);
-    iced::widget::scrollable(container(content).padding(Padding::new(XXL).top(28.0)).center_x(Length::Fill))
+    scrolling(header, body, XXL)
+}
+
+fn scrolling<'a>(header: El<'a>, body: El<'a>, bottom: f32) -> El<'a> {
+    let content = column![header, body].spacing(XL);
+    iced::widget::scrollable(centered(content, Padding::new(XXL).top(XL).bottom(bottom)))
         .style(theme::scroll)
         .height(Length::Fill)
         .into()
 }
 
-/// A titled card grouping related settings or fields.
+/// The height of a form's action bar, which the content scrolls under.
+const ACTION_BAR: f32 = 54.0;
+
+/// A form page: the header and fields scroll, the action bar stays at the bottom.
+pub fn form_page<'a>(header: El<'a>, body: El<'a>, actions: El<'a>) -> El<'a> {
+    let bar = column![
+        rule::horizontal(1).style(theme::hairline),
+        container(centered(actions, Padding::from([0.0, XXL])))
+            .center_y(Length::Fixed(ACTION_BAR - 1.0))
+            .width(Length::Fill)
+            .style(theme::toolbar),
+    ];
+    // The bar is a layer above the content, so nothing scrolled under it shows through.
+    iced::widget::stack![
+        scrolling(header, body, ACTION_BAR + XL),
+        // Opaque, so clicks on the bar never reach the field scrolled under it.
+        container(iced::widget::opaque(bar)).align_bottom(Length::Fill).width(Length::Fill),
+    ]
+    .into()
+}
+
+/// The action bar of a form: what still blocks it on the left, the actions on the right.
+pub fn form_actions<'a>(problem: Option<String>, actions: Vec<El<'a>>) -> El<'a> {
+    let left: El<'a> = match problem {
+        Some(problem) => row![
+            crate::icons::tinted(Icon::CircleAlert, 15.0, |t| t.warning),
+            text(problem).size(13).style(theme::tone_text(Tone::Warning)),
+        ]
+        .spacing(S)
+        .align_y(Alignment::Center)
+        .into(),
+        None => Space::new().into(),
+    };
+    row![container(left).width(Length::Fill), row(actions).spacing(S).align_y(Alignment::Center)]
+        .spacing(L)
+        .align_y(Alignment::Center)
+        .into()
+}
+
+/// A titled group of related settings or fields.
 pub fn section<'a>(heading_text: &'a str, description: Option<&'a str>, body: El<'a>) -> El<'a> {
-    let mut header = column![heading(heading_text)].spacing(2);
+    let mut header = column![text(heading_text).size(13).font(fonts::SEMIBOLD)].spacing(2);
     if let Some(d) = description {
         header = header.push(small(d));
     }
-    container(column![header, rule::horizontal(1).style(rule::weak), body].spacing(L))
-        .padding(XL)
-        .width(Length::Fill)
-        .style(theme::card)
-        .into()
+    column![header, container(body).padding(L).width(Length::Fill).style(theme::card)].spacing(S).into()
+}
+
+/// Rows separated by hairlines, for the inside of a [`section`].
+pub fn rows(items: Vec<El<'_>>) -> El<'_> {
+    let mut out = column![].spacing(M);
+    for (i, item) in items.into_iter().enumerate() {
+        if i > 0 {
+            out = out.push(rule::horizontal(1).style(theme::hairline));
+        }
+        out = out.push(item);
+    }
+    out.into()
+}
+
+/// Clickable rows separated by hairlines in an outlined group, edge to edge.
+pub fn list(items: Vec<El<'_>>) -> El<'_> {
+    let mut out = column![];
+    for (i, item) in items.into_iter().enumerate() {
+        if i > 0 {
+            out = out.push(rule::horizontal(1).style(theme::hairline));
+        }
+        out = out.push(item);
+    }
+    container(out).width(Length::Fill).clip(true).style(theme::card).into()
 }
 
 /// A form row: label and help on the left, the control on the right.
 pub fn field<'a>(label: &'a str, help: Option<&'a str>, control: El<'a>) -> El<'a> {
-    let mut left = column![strong(label)].spacing(2).width(Length::FillPortion(2));
+    let mut left = column![text(label).size(13).font(fonts::MEDIUM)].spacing(2).width(Length::FillPortion(2));
     if let Some(h) = help {
         left = left.push(small(h));
     }
     row![left, container(control).width(Length::FillPortion(3)).align_right(Length::FillPortion(3))]
-        .spacing(L)
+        .spacing(XL)
         .align_y(Alignment::Center)
         .into()
+}
+
+/// Mutually exclusive options shown side by side.
+pub fn segmented<'a, T: Copy + PartialEq + 'a>(
+    options: impl IntoIterator<Item = (T, El<'a>)>,
+    selected: T,
+    on_select: impl Fn(T) -> Message + 'a,
+) -> El<'a> {
+    let buttons = options.into_iter().map(|(value, label)| {
+        button(label).padding([4, 10]).style(theme::segment(value == selected)).on_press(on_select(value)).into()
+    });
+    container(row(buttons).spacing(2)).padding(2).style(theme::segmented).into()
 }
 
 /// A labelled switch row.
@@ -176,7 +256,7 @@ pub fn switch<'a>(
     value: bool,
     on_toggle: impl Fn(bool) -> Message + 'a,
 ) -> El<'a> {
-    field(label, help, toggler(value).on_toggle(on_toggle).size(20).style(theme::switch).into())
+    field(label, help, toggler(value).on_toggle(on_toggle).size(18).style(theme::switch).into())
 }
 
 pub fn input<'a>(
@@ -184,14 +264,19 @@ pub fn input<'a>(
     value: &'a str,
     on_input: impl Fn(String) -> Message + 'a,
 ) -> text_input::TextInput<'a, Message> {
-    text_input(placeholder, value).on_input(on_input).padding([9, 12]).style(theme::input)
+    text_input(placeholder, value).on_input(on_input).padding([7, 10]).size(13).style(theme::input)
 }
 
 pub fn select<'a, T>(options: &'a [T], selected: Option<T>, on_select: impl Fn(T) -> Message + 'a) -> El<'a>
 where
     T: ToString + PartialEq + Clone + 'a,
 {
-    pick_list(options, selected, on_select).padding([8, 12]).width(Length::Fill).style(theme::select).into()
+    pick_list(options, selected, on_select)
+        .padding([6, 10])
+        .text_size(13)
+        .width(Length::Fill)
+        .style(theme::select)
+        .into()
 }
 
 /// A path field with a "Browse…" button.
@@ -211,21 +296,24 @@ pub fn path_input<'a>(
 
 /// A centred message with an icon, for empty and error states.
 pub fn empty_state<'a>(i: Icon, tone: Tone, heading_text: &'a str, body: &'a str, actions: Vec<El<'a>>) -> El<'a> {
-    container(
-        column![
-            icon_tile(i, tone, 56.0),
-            Space::new().height(XS),
-            heading(heading_text).size(17),
-            muted(body).align_x(Alignment::Center),
-            Space::new().height(XS),
-            row(actions).spacing(S),
-        ]
+    let pick: fn(&theme::Tokens) -> iced::Color = match tone {
+        Tone::Accent => |t| t.primary,
+        Tone::Danger => |t| t.danger,
+        Tone::Warning => |t| t.warning,
+        Tone::Success => |t| t.success,
+        Tone::Neutral => |t| t.subtle,
+    };
+    let mut content = column![crate::icons::tinted(i, 28.0, pick), vspace(XS), heading(heading_text)]
         .spacing(S)
         .align_x(Alignment::Center)
-        .max_width(460),
-    )
-    .center(Length::Fill)
-    .into()
+        .max_width(420);
+    if !body.is_empty() {
+        content = content.push(muted(body).size(13).align_x(Alignment::Center));
+    }
+    if !actions.is_empty() {
+        content = content.push(vspace(XS)).push(row(actions).spacing(S));
+    }
+    container(content).center(Length::Fill).into()
 }
 
 /// A tinted banner with an icon, a message and actions.
@@ -239,14 +327,14 @@ pub fn banner<'a>(tone: Tone, i: Icon, message: El<'a>, actions: Vec<El<'a>>) ->
     };
     container(
         row![
-            crate::icons::tinted(i, 18.0, pick),
+            crate::icons::tinted(i, 16.0, pick),
             container(message).width(Length::Fill),
             row(actions).spacing(S).align_y(Alignment::Center),
         ]
         .spacing(M)
         .align_y(Alignment::Center),
     )
-    .padding([10, 14])
+    .padding([8, 12])
     .style(theme::tinted(tone))
     .into()
 }
@@ -254,7 +342,7 @@ pub fn banner<'a>(tone: Tone, i: Icon, message: El<'a>, actions: Vec<El<'a>>) ->
 /// Two columns of "label: value" lines.
 pub fn properties(items: Vec<(&str, String)>) -> El<'_> {
     column(items.into_iter().map(|(k, v)| {
-        row![small(k).width(Length::Fixed(132.0)), text(v).size(13)].spacing(S).align_y(Alignment::Center).into()
+        row![small(k).width(Length::Fixed(110.0)), text(v).size(13)].spacing(S).align_y(Alignment::Start).into()
     }))
     .spacing(6)
     .into()
@@ -262,7 +350,13 @@ pub fn properties(items: Vec<(&str, String)>) -> El<'_> {
 
 /// A keyboard shortcut label.
 pub fn kbd<'a>(keys: impl text::IntoFragment<'a>) -> El<'a> {
-    container(text(keys).size(11).font(fonts::MEDIUM).style(theme::muted)).padding([1, 6]).style(theme::inset).into()
+    container(text(keys).size(11).font(fonts::MEDIUM).style(theme::muted))
+        .padding([1, 5])
+        .style(|t: &Theme| iced::widget::container::Style {
+            border: iced::Border { radius: theme::RADIUS_S.into(), ..theme::inset(t).border },
+            ..theme::inset(t)
+        })
+        .into()
 }
 
 pub fn shortcut_label() -> &'static str {

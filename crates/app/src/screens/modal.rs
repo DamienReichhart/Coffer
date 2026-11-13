@@ -121,18 +121,25 @@ impl App {
 }
 
 fn dialog<'a>(i: Icon, tone: Tone, title: String, body: El<'a>, actions: Vec<El<'a>>) -> El<'a> {
+    let pick: fn(&crate::theme::Tokens) -> iced::Color = match tone {
+        Tone::Success => |t| t.success,
+        Tone::Warning => |t| t.warning,
+        Tone::Danger => |t| t.danger,
+        Tone::Accent => |t| t.primary,
+        Tone::Neutral => |t| t.muted,
+    };
     container(
         column![
-            row![ui::icon_tile(i, tone, 40.0), ui::heading(title).size(17).width(Length::Fill)]
-                .spacing(14)
+            row![crate::icons::tinted(i, 18.0, pick), ui::heading(title).size(15).width(Length::Fill)]
+                .spacing(10)
                 .align_y(Alignment::Center),
             body,
             row![Space::new().width(Length::Fill), row(actions).spacing(8)].align_y(Alignment::Center),
         ]
-        .spacing(18),
+        .spacing(16),
     )
-    .padding(24)
-    .width(Length::Fixed(460.0))
+    .padding(20)
+    .width(Length::Fixed(440.0))
     .style(theme::modal)
     .into()
 }
@@ -154,7 +161,8 @@ pub fn view(modal: &Modal) -> El<'_> {
                     .secure(!show)
                     .on_input(|v| Message::Modal(Msg::Input(v)))
                     .on_submit(Message::Modal(Msg::Submit))
-                    .padding([9, 12])
+                    .padding([7, 10])
+                    .size(13)
                     .style(theme::input),
                 iced::widget::checkbox(*show)
                     .label("Show the password")
@@ -211,7 +219,8 @@ pub fn view(modal: &Modal) -> El<'_> {
                     .id(INPUT_ID)
                     .on_input(|v| Message::Modal(Msg::Input(v)))
                     .on_submit(Message::Modal(Msg::Submit))
-                    .padding([9, 12])
+                    .padding([7, 10])
+                    .size(13)
                     .style(theme::input),
             ]
             .spacing(10)

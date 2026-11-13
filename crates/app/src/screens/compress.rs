@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use coffer_core::{ArchiveFormat, CompressOptions, CompressionLevel, CompressionMethod, SplitSize};
-use iced::widget::{Space, button, checkbox, column, container, row, scrollable, text};
+use iced::widget::{Space, checkbox, column, container, row, scrollable, text};
 use iced::{Alignment, Length, Task};
 
 use crate::app::{App, Message, Screen};
@@ -325,7 +325,7 @@ pub fn view(app: &App) -> El<'_> {
     let form = &app.compress;
     let header = ui::page_header(
         "Compress",
-        "Create a new archive from files and folders.",
+        "Make a new archive from files and folders.",
         vec![ui::ghost(Some(Icon::RotateCcw), "Reset", Some(Message::Compress(Msg::Reset))).into()],
     );
 
@@ -335,55 +335,43 @@ pub fn view(app: &App) -> El<'_> {
         "Create archive",
         problem.is_none().then_some(Message::Compress(Msg::Create)),
     );
-    let footer: El<'_> = match &problem {
-        Some(p) if !form.inputs.is_empty() => {
-            row![ui::banner(Tone::Warning, Icon::CircleAlert, text(p.clone()).into(), vec![]), create]
-                .spacing(12)
-                .align_y(Alignment::Center)
-                .into()
-        }
-        _ => row![Space::new().width(Length::Fill), create].into(),
-    };
+    // Nothing to complain about before anything was added.
+    let shown = problem.filter(|_| !form.inputs.is_empty());
+    let actions = ui::form_actions(shown, vec![create.into()]);
 
-    let body = column![inputs(form), output(form), options(form), security(form), footer].spacing(ui::L);
-    ui::page(header, body.into())
+    let body = column![inputs(form), output(form), options(form), security(form)].spacing(ui::XL);
+    ui::form_page(header, body.into(), actions)
 }
 
 fn inputs(form: &Form) -> El<'_> {
     let list: El<'_> = if form.inputs.is_empty() {
-        container(
-            column![
-                ui::icon_tile(Icon::Files, Tone::Accent, 44.0),
-                ui::strong("Drop files and folders here"),
-                ui::small("or add them with the buttons below."),
-            ]
-            .spacing(8)
-            .align_x(Alignment::Center),
-        )
-        .padding(24)
-        .center_x(Length::Fill)
-        .style(theme::drop_zone(false))
+        column![
+            ui::muted("Nothing added yet.").size(13),
+            ui::small("Add files or folders, or drop them anywhere on this window."),
+        ]
+        .spacing(2)
         .into()
     } else {
         let rows = form.inputs.iter().enumerate().map(|(i, path)| {
             let is_dir = path.is_dir();
             row![
-                icon(if is_dir { Icon::Folder } else { Icon::File }, 17.0),
-                column![
-                    text(
-                        path.file_name()
-                            .map_or_else(|| path.display().to_string(), |n| n.to_string_lossy().into_owned())
-                    ),
-                    ui::small(path.parent().map(|p| p.display().to_string()).unwrap_or_default()),
-                ]
-                .width(Length::Fill),
+                icon(if is_dir { Icon::Folder } else { Icon::File }, 16.0),
+                text(path.file_name().map_or_else(|| path.display().to_string(), |n| n.to_string_lossy().into_owned()))
+                    .size(13)
+                    .wrapping(text::Wrapping::None),
+                container(
+                    ui::small(path.parent().map(|p| p.display().to_string()).unwrap_or_default())
+                        .wrapping(text::Wrapping::None)
+                )
+                .width(Length::Fill)
+                .clip(true),
                 ui::icon_button(Icon::X, "Remove", Some(Message::Compress(Msg::Remove(i)))),
             ]
             .spacing(10)
             .align_y(Alignment::Center)
             .into()
         });
-        scrollable(column(rows).spacing(6)).style(theme::scroll).height(Length::Shrink).into()
+        scrollable(column(rows).spacing(2)).style(theme::scroll).height(Length::Shrink).into()
     };
     let actions = row![
         ui::secondary(Some(Icon::FilePlus), "Add files…", Some(Message::Compress(Msg::AddFilesDialog))),
@@ -394,18 +382,14 @@ fn inputs(form: &Form) -> El<'_> {
     ]
     .spacing(8)
     .align_y(Alignment::Center);
-    ui::section("What to compress", None, column![list, actions].spacing(14).into())
+    ui::section("Files", None, ui::rows(vec![list, actions.into()]))
 }
 
 fn output(form: &Form) -> El<'_> {
-    let formats = row(ArchiveFormat::ALL.iter().map(|f| {
-        button(text(f.to_string()).size(13))
-            .padding([7, 14])
-            .style(theme::chip(form.format == *f))
-            .on_press(Message::Compress(Msg::Format(*f)))
-            .into()
-    }))
-    .spacing(6);
+    let formats =
+        ui::segmented(ArchiveFormat::ALL.iter().map(|f| (*f, text(f.to_string()).size(13).into())), form.format, |f| {
+            Message::Compress(Msg::Format(f))
+        });
     let hint = match form.format {
         ArchiveFormat::SevenZ => "The best compression, solid archives and encrypted file names.",
         ArchiveFormat::Zip => "Opens everywhere, including Windows and macOS without extra software.",
@@ -416,8 +400,8 @@ fn output(form: &Form) -> El<'_> {
     ui::section(
         "Archive",
         None,
-        column![
-            ui::field("Format", Some(hint), formats.into()),
+        ui::rows(vec![
+            column![formats, ui::small(hint)].spacing(8).into(),
             ui::field(
                 "Save as",
                 None,
@@ -425,34 +409,31 @@ fn output(form: &Form) -> El<'_> {
                     "Where to save the archive",
                     &form.output,
                     |v| Message::Compress(Msg::Output(v)),
-                    Message::Compress(Msg::BrowseOutput)
+                    Message::Compress(Msg::BrowseOutput),
                 ),
             ),
-        ]
-        .spacing(16)
-        .into(),
+        ]),
     )
 }
 
 fn options(form: &Form) -> El<'_> {
     let format = form.format;
-    let mut col = column![].spacing(16);
+    let mut rows: Vec<El<'_>> = Vec::new();
     if format.supports_compression() {
-        col = col.push(ui::field(
+        rows.push(ui::field(
             "Compression level",
-            Some("Higher levels make smaller archives, more slowly."),
+            Some("Higher is smaller and slower."),
             ui::select(&CompressionLevel::ALL, Some(form.level), |l| Message::Compress(Msg::Level(l))),
         ));
         let methods = method_choices(format);
         let selected = methods.iter().find(|c| c.value == form.method).cloned();
-        col =
-            col.push(ui::field("Method", None, owned_select(methods, selected, |c| Message::Compress(Msg::Method(c)))));
+        rows.push(ui::field("Method", None, owned_select(methods, selected, |c| Message::Compress(Msg::Method(c)))));
         if matches!(format, ArchiveFormat::SevenZ | ArchiveFormat::Xz) {
             let dictionaries = dictionary_choices();
             let selected = dictionaries.iter().find(|c| c.value == form.dictionary).cloned();
-            col = col.push(ui::field(
+            rows.push(ui::field(
                 "Dictionary size",
-                Some("Larger dictionaries find more repetition and use more memory."),
+                Some("Larger finds more repetition and uses more memory."),
                 owned_select(dictionaries, selected, |c| Message::Compress(Msg::Dictionary(c))),
             ));
         }
@@ -460,14 +441,10 @@ fn options(form: &Form) -> El<'_> {
     if format.supports_multithreading() {
         let threads = thread_choices();
         let selected = threads.iter().find(|c| c.value == form.threads).cloned();
-        col = col.push(ui::field(
-            "Threads",
-            None,
-            owned_select(threads, selected, |c| Message::Compress(Msg::Threads(c))),
-        ));
+        rows.push(ui::field("Threads", None, owned_select(threads, selected, |c| Message::Compress(Msg::Threads(c)))));
     }
     if format.supports_solid() {
-        col = col.push(ui::switch(
+        rows.push(ui::switch(
             "Solid archive",
             Some("Compresses files together: smaller, but slower to update."),
             form.solid,
@@ -482,19 +459,19 @@ fn options(form: &Form) -> El<'_> {
         split_control = split_control
             .push(ui::input("e.g. 250m or 2g", &form.custom_split, |v| Message::Compress(Msg::CustomSplit(v))));
     }
-    col = col.push(ui::field("Split into volumes", Some("For size-limited media and uploads."), split_control.into()));
-    col = col.push(ui::field(
+    rows.push(ui::field("Split into volumes", Some("For size-limited media and uploads."), split_control.into()));
+    rows.push(ui::field(
         "Leave out",
         Some("Wildcards, separated by commas: *.tmp, node_modules"),
         ui::input("Nothing", &form.excludes, |v| Message::Compress(Msg::Excludes(v))).into(),
     ));
-    col = col.push(ui::switch(
+    rows.push(ui::switch(
         "Delete the originals afterwards",
         Some("Only once the archive was written without errors."),
         form.delete_after,
         |v| Message::Compress(Msg::DeleteAfter(v)),
     ));
-    ui::section("Options", None, col.into())
+    ui::section("Compression", None, ui::rows(rows))
 }
 
 fn security(form: &Form) -> El<'_> {
@@ -506,27 +483,39 @@ fn security(form: &Form) -> El<'_> {
             ui::muted(format!(
                 "{format} archives can't be encrypted. Choose 7z or ZIP to protect them with a password."
             ))
+            .size(13)
             .into(),
         );
     }
-    let mut col = column![ui::field(
+    let strength: El<'_> = if form.password.is_empty() {
+        Space::new().into()
+    } else {
+        let (label, tone) = password_strength(&form.password);
+        row![ui::small("Strength"), ui::badge(label, tone)].spacing(8).align_y(Alignment::Center).into()
+    };
+    let mut rows = vec![ui::field(
         "Password",
         Some("Leave empty for no encryption."),
         column![
             ui::input("Password", &form.password, |v| Message::Compress(Msg::Password(v))).secure(!form.show_password),
             ui::input("Repeat the password", &form.confirm, |v| Message::Compress(Msg::Confirm(v)))
                 .secure(!form.show_password),
-            checkbox(form.show_password)
-                .label("Show the password")
-                .on_toggle(|v| Message::Compress(Msg::ShowPassword(v)))
-                .size(16),
+            row![
+                checkbox(form.show_password)
+                    .label("Show")
+                    .on_toggle(|v| Message::Compress(Msg::ShowPassword(v)))
+                    .size(15)
+                    .text_size(13),
+                Space::new().width(Length::Fill),
+                strength,
+            ]
+            .align_y(Alignment::Center),
         ]
         .spacing(8)
         .into(),
-    ),]
-    .spacing(16);
+    )];
     if format.supports_header_encryption() {
-        col = col.push(ui::switch(
+        rows.push(ui::switch(
             "Encrypt file names",
             Some("Without the password, nobody can even list the files."),
             form.encrypt_names,
@@ -534,20 +523,14 @@ fn security(form: &Form) -> El<'_> {
         ));
     }
     if format == ArchiveFormat::Zip {
-        col = col.push(ui::switch(
+        rows.push(ui::switch(
             "Use AES-256",
             Some("Much stronger than ZipCrypto, but Windows Explorer can't open it."),
             form.zip_aes,
             |v| Message::Compress(Msg::ZipAes(v)),
         ));
     }
-    let strength = password_strength(&form.password);
-    if !form.password.is_empty() {
-        col = col.push(
-            row![ui::small("Strength:"), ui::badge(strength.0, strength.1)].spacing(8).align_y(Alignment::Center),
-        );
-    }
-    ui::section("Encryption", Some("AES-256. A lost password can't be recovered by anyone."), col.into())
+    ui::section("Encryption", Some("AES-256. A lost password can't be recovered by anyone."), ui::rows(rows))
 }
 
 /// A rough, honest strength estimate based on length and variety.
@@ -580,7 +563,8 @@ where
     T: Clone + PartialEq + 'a,
 {
     iced::widget::pick_list(choices, selected, on_select)
-        .padding([8, 12])
+        .padding([6, 10])
+        .text_size(13)
         .width(Length::Fill)
         .style(theme::select)
         .into()

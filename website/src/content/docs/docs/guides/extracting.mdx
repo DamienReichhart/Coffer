@@ -5,10 +5,10 @@ description: Extract all or part of an archive, where you want, the way you want
 
 import DocScreenshot from '@/components/DocScreenshot.astro';
 
-Click **Extract** in an open archive, choose **Extract archive** on the welcome screen, or run
-`coffer --extract <archive>`. The extract dialog sets everything up:
+Click **Extract** in an open archive, choose **Extract…** on the home screen, or run
+`coffer --extract <archive>`. The Extract screen sets everything up:
 
-<DocScreenshot name="extract" alt="The extract dialog" />
+<DocScreenshot name="extract" alt="The Extract screen with a split archive of eleven volumes" />
 
 ## What to extract
 
@@ -22,6 +22,24 @@ By default Coffer extracts into a **new folder named after the archive**, next t
 (`photos.7z` → `photos/`), so an archive with many top-level files never spills into the folder it
 sits in. Choose any other folder with **Browse**. The default can be changed in
 [Settings](/docs/reference/settings/).
+
+## Split and multi-part archives
+
+An archive split into several files — eleven `.zip.001` … `.zip.011` files, for instance — is one
+archive. Pick **any** of its volumes (or drop all of them on the window at once) and Coffer finds the
+others in the same folder, hands 7-Zip the right one and extracts everything as a single archive.
+The **Volumes** row shows how many files it found and their total size.
+
+| Naming | Example | Made by |
+| --- | --- | --- |
+| Numbered volumes | `backup.7z.001`, `backup.zip.002`… | 7-Zip, PeaZip, HJSplit, `split` |
+| RAR parts | `movie.part1.rar`, `movie.part2.rar`… | WinRAR 3 and later |
+| Old-style RAR | `movie.rar`, `movie.r00`, `movie.r01`… | WinRAR 2 |
+| Spanned ZIP | `site.z01`, `site.z02`…, `site.zip` | WinZip, Info-ZIP `zip -s` |
+
+If a volume between the first and the last is missing, Coffer lists it by name and doesn't start.
+A missing *last* volume can't be seen from the names alone: 7-Zip then reports the archive as
+truncated, and Coffer says that a volume is missing.
 
 ## Keep folder structure
 

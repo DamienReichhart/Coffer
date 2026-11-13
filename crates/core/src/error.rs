@@ -32,6 +32,10 @@ pub enum Error {
     #[error("{} is not an archive 7-Zip can open", path.display())]
     UnsupportedArchive { path: PathBuf },
 
+    /// A volume of a multi-volume archive is missing.
+    #[error("a volume of this archive is missing: {0}")]
+    MissingVolume(String),
+
     /// The archive is damaged.
     #[error("the archive is damaged: {0}")]
     Corrupt(String),
@@ -88,6 +92,28 @@ pub fn classify(code: Option<i32>, output: &str, archive: Option<&std::path::Pat
     }
     if lower.contains("wrong password") {
         return Error::WrongPassword;
+    }
+    // 7-Zip's own line, `Missing volume : a.z05` (also as `ERROR = …`), not a
+    // folder or file that happens to be called that.
+    let missing = output.lines().find_map(|line| {
+        let line = line.trim();
+        let line = line.strip_prefix("ERROR =").or_else(|| line.strip_prefix("ERROR:")).unwrap_or(line).trim();
+        let (key, name) = line.split_once(':')?;
+        key.trim().eq_ignore_ascii_case("missing volume").then(|| name.trim().to_owned())
+    });
+    if let Some(name) = missing {
+        return Error::MissingVolume(name);
+    }
+    // A split archive whose last volumes are gone reads as truncated.
+    let is_volume = archive.is_some_and(|a| {
+        let numbered =
+            a.file_name().and_then(|n| n.to_str()).and_then(crate::volumes::parse_name).is_some_and(|p| {
+                matches!(p.scheme, crate::volumes::Scheme::Numbered | crate::volumes::Scheme::RarParts)
+            });
+        numbered || crate::volumes::detect(a).is_some()
+    });
+    if is_volume && lower.contains("unexpected end of archive") {
+        return Error::MissingVolume("one of the last volumes".to_owned());
     }
     if lower.contains("cannot open the file as archive")
         || lower.contains("can not open the file as archive")
@@ -167,6 +193,25 @@ mod tests {
         assert_eq!(err.to_string(), "Something odd happened");
         assert!(matches!(classify(Some(8), "", None), Error::OutOfMemory));
         assert!(matches!(classify(Some(7), "Command Line Error:\nUnsupported switch", None), Error::CommandLine(_)));
+    }
+
+    #[test]
+    fn missing_volumes() {
+        let out = "Testing archive: span.zip\n\nERRORS:\nMissing volume : span.z05\n";
+        let err = classify(Some(2), out, Some(std::path::Path::new("span.zip")));
+        assert!(matches!(&err, Error::MissingVolume(name) if name == "span.z05"), "{err:?}");
+        let out = "ERROR: split.7z.001\nsplit.7z\nOpen ERROR: Cannot open the file as [7z] archive\n\nERRORS:\nUnexpected end of archive";
+        let err = classify(Some(2), out, Some(std::path::Path::new("split.7z.001")));
+        assert!(matches!(err, Error::MissingVolume(_)), "{err:?}");
+        // Names that merely contain the words are not a missing volume.
+        let out = "Listing archive: /home/u/Missing Volumes/a.7z\nERROR: CRC Failed : Missing Volume notes.txt";
+        let err = classify(Some(2), out, Some(std::path::Path::new("/home/u/Missing Volumes/a.7z")));
+        assert!(matches!(err, Error::Corrupt(_)), "{err:?}");
+        let out = "ERROR = Missing volume : span.z05";
+        assert!(matches!(classify(Some(2), out, None), Error::MissingVolume(n) if n == "span.z05"));
+        // An ordinary archive cut short is damaged, not missing a volume.
+        let err = classify(Some(2), "ERRORS:\nUnexpected end of archive", Some(std::path::Path::new("a.7z")));
+        assert!(matches!(err, Error::Corrupt(_)), "{err:?}");
     }
 
     #[test]

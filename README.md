@@ -35,6 +35,7 @@ runtime.
 - **Browse** 7z, ZIP, RAR, TAR, ISO, CAB, WIM and every other format your 7-Zip reads — folders, natural sorting, search across the archive, multi-selection, details panel, open a file with a double-click.
 - **Create** 7z, ZIP, TAR, GZip, BZip2, XZ and WIM archives — level, method, dictionary, threads, solid mode, AES-256 with encrypted file names, split volumes, exclusions.
 - **Extract** everything or a selection, into a folder named after the archive, with your choice for existing files.
+- **Split archives** (`.001`, `.part1.rar`, `.r00`, `.z01`) open and extract from any of their volumes, and missing volumes are named.
 - **Edit** archives: add, delete and rename entries; **test** integrity.
 - **Checksums** (CRC32/64, SHA-1, SHA-256, BLAKE2sp, and MD5/SHA-512/XXH64 with 7-Zip 24+) with verification.
 - **Activity** view with live progress, cancel, retry and logs. Drag and drop, keyboard shortcuts, light and dark themes.

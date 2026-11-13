@@ -645,7 +645,7 @@ dependencies = [
 
 [[package]]
 name = "coffer"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "clap",
  "coffer-core",
@@ -668,7 +668,7 @@ dependencies = [
 
 [[package]]
 name = "coffer-core"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "async-stream",
  "futures-core",
@@ -684,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "coffer-updater"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "minisign",
  "minisign-verify",

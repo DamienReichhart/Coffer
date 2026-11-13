@@ -3,13 +3,13 @@
 use std::path::PathBuf;
 
 use coffer_core::{ArchiveFormat, CompressionLevel, OverwriteMode};
-use iced::widget::{button, column, row, text};
+use iced::widget::{column, row, text};
 use iced::{Alignment, Task};
 
 use crate::app::{App, Message, SevenState};
 use crate::icons::Icon;
 use crate::settings::{Settings, paths};
-use crate::theme::{self, ThemeChoice, Tone};
+use crate::theme::{ThemeChoice, Tone};
 use crate::ui::{self, El};
 use crate::update::{self, State};
 
@@ -114,34 +114,38 @@ pub fn view(app: &App) -> El<'_> {
         vec![ui::ghost(Some(Icon::RotateCcw), "Restore defaults", Some(Message::Preferences(Msg::Reset))).into()],
     );
 
-    let themes = row(ThemeChoice::ALL.iter().map(|choice| {
-        let (i, label) = match choice {
-            ThemeChoice::System => (Icon::Monitor, "System"),
-            ThemeChoice::Light => (Icon::Sun, "Light"),
-            ThemeChoice::Dark => (Icon::Moon, "Dark"),
-        };
-        button(row![crate::icons::icon(i, 15.0), text(label).size(13)].spacing(6).align_y(Alignment::Center))
-            .padding([7, 12])
-            .style(theme::chip(s.theme == *choice))
-            .on_press(Message::Preferences(Msg::Theme(*choice)))
-            .into()
-    }))
-    .spacing(6);
+    let themes = ui::segmented(
+        ThemeChoice::ALL.iter().map(|choice| {
+            let (i, label) = match choice {
+                ThemeChoice::System => (Icon::Monitor, "System"),
+                ThemeChoice::Light => (Icon::Sun, "Light"),
+                ThemeChoice::Dark => (Icon::Moon, "Dark"),
+            };
+            (
+                *choice,
+                row![crate::icons::icon(i, 14.0), text(label).size(13)].spacing(6).align_y(Alignment::Center).into(),
+            )
+        }),
+        s.theme,
+        |choice| Message::Preferences(Msg::Theme(choice)),
+    );
 
-    let appearance = ui::section("Appearance", None, ui::field("Theme", None, themes.into()));
+    let appearance = ui::section("Appearance", None, ui::field("Theme", None, themes));
 
     let status: El<'_> = match &app.seven {
-        SevenState::Ready(seven) => ui::banner(
-            Tone::Success,
-            Icon::CircleCheck,
+        SevenState::Ready(seven) => row![
+            crate::icons::tinted(Icon::CircleCheck, 16.0, |t| t.success),
             column![
-                ui::strong(format!("7-Zip {} is ready", seven.version)),
+                text(format!("7-Zip {}", seven.version)).size(13).font(crate::fonts::MEDIUM),
                 ui::small(seven.path.display().to_string())
             ]
-            .spacing(2)
-            .into(),
-            vec![ui::ghost(Some(Icon::RefreshCw), "Detect again", Some(Message::Relocate)).into()],
-        ),
+            .spacing(1)
+            .width(iced::Length::Fill),
+            ui::ghost(Some(Icon::RefreshCw), "Detect again", Some(Message::Relocate)),
+        ]
+        .spacing(10)
+        .align_y(Alignment::Center)
+        .into(),
         SevenState::Detecting => {
             ui::banner(Tone::Neutral, Icon::LoaderCircle, ui::strong("Looking for 7-Zip…").into(), vec![])
         }
@@ -153,7 +157,7 @@ pub fn view(app: &App) -> El<'_> {
     let seven = ui::section(
         "7-Zip",
         Some("Coffer uses the 7-Zip installed on this computer. It is never bundled."),
-        column![
+        ui::rows(vec![
             status,
             ui::field(
                 "Executable",
@@ -173,59 +177,53 @@ pub fn view(app: &App) -> El<'_> {
                 .align_y(Alignment::Center)
                 .into(),
             ),
-        ]
-        .spacing(16)
-        .into(),
+        ]),
     );
 
     let compress = ui::section(
         "New archives",
         Some("The starting values of the Compress screen."),
-        column![
+        ui::rows(vec![
             ui::field(
                 "Format",
                 None,
-                ui::select(&ArchiveFormat::ALL, Some(s.compress.format), |f| Message::Preferences(Msg::Format(f)))
+                ui::select(&ArchiveFormat::ALL, Some(s.compress.format), |f| Message::Preferences(Msg::Format(f))),
             ),
             ui::field(
                 "Compression level",
                 None,
-                ui::select(&CompressionLevel::ALL, Some(s.compress.level), |l| Message::Preferences(Msg::Level(l)))
+                ui::select(&CompressionLevel::ALL, Some(s.compress.level), |l| Message::Preferences(Msg::Level(l))),
             ),
             ui::switch("Solid 7z archives", None, s.compress.solid, |v| Message::Preferences(Msg::Solid(v))),
-            ui::switch("Encrypt file names in 7z", None, s.compress.encrypt_names, |v| Message::Preferences(
-                Msg::EncryptNames(v)
-            )),
+            ui::switch("Encrypt file names in 7z", None, s.compress.encrypt_names, |v| {
+                Message::Preferences(Msg::EncryptNames(v))
+            }),
             ui::switch("AES-256 for encrypted ZIP", None, s.compress.zip_aes, |v| Message::Preferences(Msg::ZipAes(v))),
-        ]
-        .spacing(16)
-        .into(),
+        ]),
     );
 
     let extract = ui::section(
         "Extraction",
         None,
-        column![
+        ui::rows(vec![
             ui::field(
                 "When a file already exists",
                 None,
-                ui::select(&OverwriteMode::ALL, Some(s.extract.overwrite), |m| Message::Preferences(Msg::Overwrite(m)))
+                ui::select(&OverwriteMode::ALL, Some(s.extract.overwrite), |m| Message::Preferences(Msg::Overwrite(m))),
             ),
             ui::switch("Create a folder named after the archive", None, s.extract.into_folder, |v| {
                 Message::Preferences(Msg::IntoFolder(v))
             }),
-            ui::switch("Keep the folder structure", None, s.extract.keep_paths, |v| Message::Preferences(
-                Msg::KeepPaths(v)
-            )),
-            ui::switch("Open the folder when done", None, s.extract.open_when_done, |v| Message::Preferences(
-                Msg::OpenWhenDone(v)
-            )),
-            ui::switch("Ask before deleting from an archive", None, s.confirm_delete, |v| Message::Preferences(
-                Msg::ConfirmDelete(v)
-            )),
-        ]
-        .spacing(16)
-        .into(),
+            ui::switch("Keep the folder structure", None, s.extract.keep_paths, |v| {
+                Message::Preferences(Msg::KeepPaths(v))
+            }),
+            ui::switch("Open the folder when done", None, s.extract.open_when_done, |v| {
+                Message::Preferences(Msg::OpenWhenDone(v))
+            }),
+            ui::switch("Ask before deleting from an archive", None, s.confirm_delete, |v| {
+                Message::Preferences(Msg::ConfirmDelete(v))
+            }),
+        ]),
     );
 
     let update_status = match &app.updater.state {
@@ -246,22 +244,27 @@ pub fn view(app: &App) -> El<'_> {
     let updates = ui::section(
         "Updates",
         Some(signing),
-        column![
+        ui::rows(vec![
             ui::switch(
                 "Check for updates automatically",
-                Some("At startup and every six hours. Only the version file on the website is fetched; nothing about you is sent."),
+                Some(
+                    "At startup and every six hours. Only the version file on the website is fetched; nothing about you is sent.",
+                ),
                 s.updates.check_automatically,
                 |v| Message::Preferences(Msg::AutoUpdate(v)),
             ),
             row![
-                ui::muted(update_status).width(iced::Length::Fill),
-                ui::secondary(Some(Icon::RefreshCw), "Check now", Some(Message::Update(update::Msg::Check { manual: true }))),
+                ui::muted(update_status).size(13).width(iced::Length::Fill),
+                ui::secondary(
+                    Some(Icon::RefreshCw),
+                    "Check now",
+                    Some(Message::Update(update::Msg::Check { manual: true }))
+                ),
             ]
             .spacing(8)
-            .align_y(Alignment::Center),
-        ]
-        .spacing(16)
-        .into(),
+            .align_y(Alignment::Center)
+            .into(),
+        ]),
     );
 
     let advanced = ui::section(
@@ -288,5 +291,5 @@ pub fn view(app: &App) -> El<'_> {
         .into(),
     );
 
-    ui::page(header, column![appearance, seven, compress, extract, updates, advanced].spacing(ui::L).into())
+    ui::page(header, column![appearance, seven, compress, extract, updates, advanced].spacing(ui::XL).into())
 }

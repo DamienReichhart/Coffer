@@ -105,10 +105,10 @@ pub const LIGHT: Tokens = Tokens {
     backdrop: Color { r: 0.07, g: 0.08, b: 0.10, a: 0.38 },
 };
 
-/// Corner radii.
-pub const RADIUS_S: f32 = 6.0;
-pub const RADIUS: f32 = 10.0;
-pub const RADIUS_L: f32 = 14.0;
+/// Corner radii: small, so controls read as tools rather than cards.
+pub const RADIUS_S: f32 = 4.0;
+pub const RADIUS: f32 = 6.0;
+pub const RADIUS_L: f32 = 8.0;
 
 /// The iced theme for a light or dark appearance.
 pub fn theme(dark: bool) -> Theme {
@@ -177,13 +177,29 @@ pub fn sidebar(theme: &Theme) -> container::Style {
     }
 }
 
+/// A group of related rows: flat, outlined, no shadow.
 pub fn card(theme: &Theme) -> container::Style {
     let t = tokens(theme);
     container::Style {
         background: Some(t.surface.into()),
         border: border(t.border, 1.0, RADIUS_L),
-        shadow: shadow(t, 1.0, 2.0),
         ..Default::default()
+    }
+}
+
+/// A side panel next to the main content (the archive details).
+pub fn side_panel(theme: &Theme) -> container::Style {
+    let t = tokens(theme);
+    container::Style { background: Some(t.sidebar.into()), ..Default::default() }
+}
+
+/// A hairline between rows and regions.
+pub fn hairline(theme: &Theme) -> iced::widget::rule::Style {
+    iced::widget::rule::Style {
+        color: tokens(theme).border,
+        radius: 0.0.into(),
+        fill_mode: iced::widget::rule::FillMode::Full,
+        snap: true,
     }
 }
 
@@ -199,21 +215,18 @@ pub fn inset(theme: &Theme) -> container::Style {
 
 pub fn toolbar(theme: &Theme) -> container::Style {
     let t = tokens(theme);
-    container::Style {
-        background: Some(t.surface.into()),
-        border: Border { color: t.border, width: 1.0, radius: 0.0.into() },
-        ..Default::default()
-    }
+    container::Style { background: Some(t.bg.into()), ..Default::default() }
 }
 
 pub fn table_header(theme: &Theme) -> container::Style {
     let t = tokens(theme);
-    container::Style {
-        background: Some(t.raised.into()),
-        text_color: Some(t.muted),
-        border: Border { color: t.border, width: 0.0, radius: Radius::from(0.0) },
-        ..Default::default()
-    }
+    container::Style { text_color: Some(t.muted), ..Default::default() }
+}
+
+/// The track of a segmented control.
+pub fn segmented(theme: &Theme) -> container::Style {
+    let t = tokens(theme);
+    container::Style { background: Some(t.raised.into()), border: border(t.border, 1.0, RADIUS), ..Default::default() }
 }
 
 pub fn drop_zone(active: bool) -> impl Fn(&Theme) -> container::Style {
@@ -260,11 +273,11 @@ pub fn badge(tone: Tone) -> impl Fn(&Theme) -> container::Style {
 pub fn icon_tile(tone: Tone) -> impl Fn(&Theme) -> container::Style {
     move |theme| {
         let t = tokens(theme);
-        let (bg, fg) = tone.colors(t);
+        let (_, fg) = tone.colors(t);
         container::Style {
-            background: Some(bg.into()),
+            background: Some(t.raised.into()),
             text_color: Some(fg),
-            border: border(Color::TRANSPARENT, 0.0, RADIUS),
+            border: border(t.border, 1.0, RADIUS),
             ..Default::default()
         }
     }
@@ -279,8 +292,8 @@ pub fn modal(theme: &Theme) -> container::Style {
     let t = tokens(theme);
     container::Style {
         background: Some(t.surface.into()),
-        border: border(t.border, 1.0, RADIUS_L),
-        shadow: shadow(t, 16.0, 48.0),
+        border: border(t.border_strong, 1.0, RADIUS_L),
+        shadow: shadow(t, 12.0, 32.0),
         text_color: Some(t.text),
         ..Default::default()
     }
@@ -293,40 +306,19 @@ pub fn toast(tone: Tone) -> impl Fn(&Theme) -> container::Style {
         container::Style {
             background: Some(t.surface.into()),
             text_color: Some(t.text),
-            border: Border { color: Color { a: 0.55, ..fg }, width: 1.0, radius: RADIUS.into() },
-            shadow: shadow(t, 8.0, 24.0),
+            border: Border { color: Color { a: 0.55, ..fg }, width: 1.0, radius: RADIUS_L.into() },
+            shadow: shadow(t, 6.0, 20.0),
             ..Default::default()
         }
     }
 }
 
-pub fn row(selected: bool, striped: bool) -> impl Fn(&Theme) -> container::Style {
+/// A table row: only the selection is tinted, so the eye follows the text.
+pub fn row(selected: bool) -> impl Fn(&Theme) -> container::Style {
     move |theme| {
         let t = tokens(theme);
-        let background = if selected {
-            Some(t.primary_soft.into())
-        } else if striped {
-            Some(
-                Color {
-                    a: if theme.extended_palette().is_dark { 0.018 } else { 0.022 },
-                    ..Color::BLACK.inverse_if(theme)
-                }
-                .into(),
-            )
-        } else {
-            None
-        };
+        let background = selected.then(|| t.primary_soft.into());
         container::Style { background, border: border(Color::TRANSPARENT, 0.0, RADIUS_S), ..Default::default() }
-    }
-}
-
-trait Inverse {
-    fn inverse_if(self, theme: &Theme) -> Color;
-}
-
-impl Inverse for Color {
-    fn inverse_if(self, theme: &Theme) -> Color {
-        if theme.extended_palette().is_dark { Color::WHITE } else { self }
     }
 }
 
@@ -427,12 +419,14 @@ pub fn link(theme: &Theme, status: button::Status) -> button::Style {
 pub fn nav(active: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |theme, status| {
         let t = tokens(theme);
+        // A wash of the text colour reads on both the light and the dark sidebar.
+        let wash = |a: f32| Color { a, ..t.text };
         let style = if active {
-            button_style(Some(t.primary_soft), t.primary, Color::TRANSPARENT, RADIUS)
+            button_style(Some(wash(0.08)), t.text, Color::TRANSPARENT, RADIUS)
         } else {
             match status {
                 button::Status::Hovered | button::Status::Pressed => {
-                    button_style(Some(t.raised), t.text, Color::TRANSPARENT, RADIUS)
+                    button_style(Some(wash(0.045)), t.text, Color::TRANSPARENT, RADIUS)
                 }
                 _ => button_style(None, t.muted, Color::TRANSPARENT, RADIUS),
             }
@@ -441,17 +435,37 @@ pub fn nav(active: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
     }
 }
 
+/// A toggle that can be on alongside others (the checksum algorithms).
 pub fn chip(active: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |theme, status| {
         let t = tokens(theme);
         let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
         let style = if active {
-            button_style(Some(t.primary_soft), t.primary, Color { a: 0.5, ..t.primary }, RADIUS_S)
+            button_style(Some(t.primary_soft), t.primary, Color { a: 0.45, ..t.primary }, RADIUS)
         } else if hovered {
-            button_style(Some(t.raised), t.text, t.border_strong, RADIUS_S)
+            button_style(Some(t.raised), t.text, t.border_strong, RADIUS)
         } else {
-            button_style(Some(t.surface), t.muted, t.border, RADIUS_S)
+            button_style(Some(t.surface), t.muted, t.border, RADIUS)
         };
+        if status == button::Status::Disabled { disabled(style) } else { style }
+    }
+}
+
+/// One option of a segmented control: the chosen one is raised out of the track.
+pub fn segment(active: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
+    move |theme, status| {
+        let t = tokens(theme);
+        let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
+        let mut style = if active {
+            button_style(Some(t.surface), t.text, t.border_strong, RADIUS_S)
+        } else if hovered {
+            button_style(None, t.text, Color::TRANSPARENT, RADIUS_S)
+        } else {
+            button_style(None, t.muted, Color::TRANSPARENT, RADIUS_S)
+        };
+        if active {
+            style.shadow = shadow(t, 1.0, 2.0);
+        }
         if status == button::Status::Disabled { disabled(style) } else { style }
     }
 }
@@ -467,19 +481,7 @@ pub fn list_row(selected: bool) -> impl Fn(&Theme, button::Status) -> button::St
         } else {
             None
         };
-        button_style(bg, t.text, Color::TRANSPARENT, RADIUS_S)
-    }
-}
-
-pub fn card_button(theme: &Theme, status: button::Status) -> button::Style {
-    let t = tokens(theme);
-    let hovered = matches!(status, button::Status::Hovered | button::Status::Pressed);
-    button::Style {
-        background: Some(if hovered { t.raised } else { t.surface }.into()),
-        text_color: t.text,
-        border: border(if hovered { t.border_strong } else { t.border }, 1.0, RADIUS_L),
-        shadow: shadow(t, if hovered { 6.0 } else { 1.0 }, if hovered { 18.0 } else { 2.0 }),
-        snap: true,
+        button_style(bg, t.text, Color::TRANSPARENT, 0.0)
     }
 }
 

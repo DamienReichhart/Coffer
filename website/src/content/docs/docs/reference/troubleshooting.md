@@ -6,7 +6,7 @@ description: Fixes for the problems people run into most.
 ## “7-Zip was not found”
 
 Coffer needs 7-Zip installed separately. [Install it](/docs/installing-7zip/), then press
-**Detect again** in **Settings → 7-Zip** (or on the welcome screen). If it is installed somewhere
+**Detect again** in **Settings → 7-Zip** (or **Check again** on the home screen). If it is installed somewhere
 unusual, point **Settings → 7-Zip → Executable** at it.
 
 On macOS, apps started from Finder don’t see your shell’s `PATH`; Coffer looks in Homebrew’s and
@@ -18,7 +18,9 @@ MacPorts’ folders for that reason. A copy elsewhere needs the Executable setti
   (an interrupted download), or its format isn’t supported by your 7-Zip. Try **Test**.
 - **RAR archives on Linux** — your distribution’s 7-Zip may lack RAR support. See
   [Installing 7-Zip](/docs/installing-7zip/).
-- **Split archives** — open the *first* volume, with all the others in the same folder.
+- **Split archives** — every volume must be in the same folder. Coffer names the missing ones
+  when it opens or extracts the archive; “unexpected end of archive” usually means the last volumes
+  are missing or incomplete.
 
 ## “Wrong password”
 

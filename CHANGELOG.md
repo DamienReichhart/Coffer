@@ -10,6 +10,19 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-13
+
+### Added
+
+- Multi-volume archives open and extract from any of their volumes: numbered (`backup.zip.001` … `.011`), RAR (`.part1.rar` and `.rar`/`.r00`) and spanned ZIP (`.z01` … `.zip`). Dropping or opening every volume at once opens the archive once, the Extract screen shows how many volumes it found and their total size, and missing volumes are named instead of 7-Zip's "unexpected end of archive".
+- Links to the documentation and to the GitHub repository in the sidebar.
+
+### Changed
+
+- A redesigned interface: flat outlined groups instead of shadowed cards, denser controls, a home screen built around the three main actions and the recent archives, a grouped sidebar, segmented pickers, and Create/Extract buttons that stay at the bottom of their forms.
+- The archive browser keeps file names readable in narrow windows: the details panel, then the secondary columns and the toolbar labels give way first. A multiple selection shows its total in the details panel.
+- The archive size of a split or spanned archive counts every volume.
+
 ## [0.1.1] - 2026-11-13
 
 ### Changed
@@ -37,6 +50,7 @@ The application itself is unchanged from 0.1.0.
 - Automatic updates from the website: every installer is checked against its SHA-256 and a minisign signature before it runs.
 - Installers for Windows (MSI and portable, x64 and ARM64), macOS (Apple silicon and Intel) and Linux (deb, rpm and AppImage, x64 and ARM64).
 
-[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/DamienReichhart/Coffer/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/DamienReichhart/Coffer/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/DamienReichhart/Coffer/releases/tag/v0.1.0
