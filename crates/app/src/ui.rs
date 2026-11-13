@@ -226,11 +226,11 @@ pub fn list(items: Vec<El<'_>>) -> El<'_> {
 
 /// A form row: label and help on the left, the control on the right.
 pub fn field<'a>(label: &'a str, help: Option<&'a str>, control: El<'a>) -> El<'a> {
-    let mut left = column![text(label).size(13).font(fonts::MEDIUM)].spacing(2).width(Length::Fixed(260.0));
+    let mut left = column![text(label).size(13).font(fonts::MEDIUM)].spacing(2).width(Length::FillPortion(2));
     if let Some(h) = help {
         left = left.push(small(h));
     }
-    row![left, container(control).width(Length::Fill).align_right(Length::Fill)]
+    row![left, container(control).width(Length::FillPortion(3)).align_right(Length::FillPortion(3))]
         .spacing(XL)
         .align_y(Alignment::Center)
         .into()
