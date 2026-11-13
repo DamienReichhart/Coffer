@@ -389,6 +389,18 @@ impl App {
             self.toast(Tone::Danger, "7-Zip is not available, so archives can't be opened yet.", None);
             return Task::none();
         };
+        // Any volume of a multi-volume archive opens the whole archive.
+        let path = match coffer_core::volumes::detect(&path) {
+            Some(set) if !set.is_complete() => {
+                self.modal = Some(modal::Modal::error(
+                    "Some volumes of this archive are missing",
+                    missing_volumes_message(&set),
+                ));
+                return Task::none();
+            }
+            Some(set) => set.primary,
+            None => path,
+        };
         self.opening = Some(path.clone());
         self.screen = Screen::Browse;
         Task::perform(
@@ -520,6 +532,8 @@ impl App {
     }
 
     fn dropped(&mut self, paths: Vec<PathBuf>) -> Task<Message> {
+        // The volumes of a split archive count as one archive.
+        let paths = coffer_core::volumes::collapse(&paths);
         if paths.is_empty() {
             return Task::none();
         }
@@ -629,14 +643,30 @@ pub const ARCHIVE_EXTENSIONS: &[&str] = &[
     "7z", "zip", "rar", "tar", "gz", "tgz", "bz2", "tbz", "tbz2", "xz", "txz", "lzma", "tlz", "zst", "tzst", "lz",
     "lz4", "z", "taz", "cab", "iso", "img", "wim", "swm", "esd", "arj", "lzh", "lha", "cpio", "rpm", "deb", "dmg",
     "jar", "war", "ear", "apk", "xpi", "epub", "docx", "xlsx", "pptx", "odt", "ods", "vhd", "vhdx", "vmdk", "qcow2",
-    "squashfs", "chm", "msi", "001", "zipx", "ar", "a", "udf", "hfs", "fat", "ntfs",
+    "squashfs", "chm", "msi", "001", "z01", "r00", "zipx", "ar", "a", "udf", "hfs", "fat", "ntfs",
 ];
 
-/// Whether a path looks like an archive from its name.
+/// Whether a path looks like an archive, or a volume of one, from its name.
 pub fn looks_like_archive(path: &Path) -> bool {
-    path.extension()
+    let known = path
+        .extension()
         .and_then(|e| e.to_str())
-        .is_some_and(|e| ARCHIVE_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()))
+        .is_some_and(|e| ARCHIVE_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()));
+    known || path.file_name().and_then(|n| n.to_str()).and_then(coffer_core::volumes::parse_name).is_some()
+}
+
+/// Explains which volumes of a set are missing.
+pub fn missing_volumes_message(set: &coffer_core::volumes::VolumeSet) -> String {
+    const SHOWN: usize = 6;
+    let mut names = set.missing.iter().take(SHOWN).cloned().collect::<Vec<_>>().join(", ");
+    if set.missing.len() > SHOWN {
+        names = format!("{names} and {} more", set.missing.len() - SHOWN);
+    }
+    format!(
+        "{} is split into several files, and these aren't next to the others: {names}. \
+         Put every volume in the same folder, then try again.",
+        set.name
+    )
 }
 
 #[cfg(test)]
@@ -648,6 +678,10 @@ mod tests {
         assert!(looks_like_archive(Path::new("a.7z")));
         assert!(looks_like_archive(Path::new("A.TAR.GZ")));
         assert!(looks_like_archive(Path::new("backup.zip.001")));
+        assert!(looks_like_archive(Path::new("backup.zip.011")));
+        assert!(looks_like_archive(Path::new("movie.part2.rar")));
+        assert!(looks_like_archive(Path::new("movie.r07")));
+        assert!(looks_like_archive(Path::new("site.z03")));
         assert!(!looks_like_archive(Path::new("notes.txt")));
         assert!(!looks_like_archive(Path::new("folder")));
     }

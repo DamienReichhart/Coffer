@@ -49,7 +49,9 @@ impl Cli {
         if !self.compress.is_empty() {
             return Launch::Compress(self.compress.into_iter().map(absolute).collect());
         }
-        let mut paths: Vec<PathBuf> = self.paths.into_iter().map(absolute).collect();
+        // Opening every volume of a split archive opens the archive once.
+        let paths: Vec<PathBuf> = self.paths.into_iter().map(absolute).collect();
+        let mut paths = coffer_core::volumes::collapse(&paths);
         match paths.len() {
             0 => Launch::Home,
             1 if paths[0].is_file() && crate::app::looks_like_archive(&paths[0]) => Launch::Open(paths.remove(0)),
@@ -87,6 +89,15 @@ mod tests {
         std::fs::write(&archive, b"PK").expect("write");
         let arg = archive.to_string_lossy().into_owned();
         assert!(matches!(launch(&[&arg]), Launch::Open(_)));
+
+        // Every volume of a split archive, as a file manager passes them.
+        for n in 1..=3 {
+            std::fs::write(dir.path().join(format!("set.7z.00{n}")), b"x").expect("write");
+        }
+        let volumes: Vec<String> =
+            (1..=3).map(|n| dir.path().join(format!("set.7z.00{n}")).display().to_string()).collect();
+        let args: Vec<&str> = volumes.iter().map(String::as_str).collect();
+        assert!(matches!(launch(&args), Launch::Open(p) if p.ends_with("set.7z.001")));
     }
 
     #[test]
