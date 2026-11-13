@@ -142,17 +142,35 @@ fn centered<'a>(content: impl Into<El<'a>>, padding: Padding) -> El<'a> {
 
 /// A page: a header above scrolling content.
 pub fn page<'a>(header: El<'a>, body: El<'a>) -> El<'a> {
+    scrolling(header, body, XXL)
+}
+
+fn scrolling<'a>(header: El<'a>, body: El<'a>, bottom: f32) -> El<'a> {
     let content = column![header, body].spacing(XL);
-    iced::widget::scrollable(centered(content, Padding::new(XXL).top(XL)))
+    iced::widget::scrollable(centered(content, Padding::new(XXL).top(XL).bottom(bottom)))
         .style(theme::scroll)
         .height(Length::Fill)
         .into()
 }
 
+/// The height of a form's action bar, which the content scrolls under.
+const ACTION_BAR: f32 = 54.0;
+
 /// A form page: the header and fields scroll, the action bar stays at the bottom.
 pub fn form_page<'a>(header: El<'a>, body: El<'a>, actions: El<'a>) -> El<'a> {
-    let bar = container(centered(actions, Padding::from([10.0, XXL]))).width(Length::Fill).style(theme::toolbar);
-    column![page(header, body), rule::horizontal(1).style(theme::hairline), bar].height(Length::Fill).into()
+    let bar = column![
+        rule::horizontal(1).style(theme::hairline),
+        container(centered(actions, Padding::from([0.0, XXL])))
+            .center_y(Length::Fixed(ACTION_BAR - 1.0))
+            .width(Length::Fill)
+            .style(theme::toolbar),
+    ];
+    // The bar is a layer above the content, so nothing scrolled under it shows through.
+    iced::widget::stack![
+        scrolling(header, body, ACTION_BAR + XL),
+        container(bar).align_bottom(Length::Fill).width(Length::Fill),
+    ]
+    .into()
 }
 
 /// The action bar of a form: what still blocks it on the left, the actions on the right.
@@ -208,7 +226,7 @@ pub fn list(items: Vec<El<'_>>) -> El<'_> {
 
 /// A form row: label and help on the left, the control on the right.
 pub fn field<'a>(label: &'a str, help: Option<&'a str>, control: El<'a>) -> El<'a> {
-    let mut left = column![text(label).size(13).font(fonts::MEDIUM)].spacing(2).width(Length::Fixed(230.0));
+    let mut left = column![text(label).size(13).font(fonts::MEDIUM)].spacing(2).width(Length::Fixed(260.0));
     if let Some(h) = help {
         left = left.push(small(h));
     }
