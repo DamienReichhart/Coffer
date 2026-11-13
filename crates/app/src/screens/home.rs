@@ -1,41 +1,36 @@
 //! The start screen: a drop zone, the main actions, recent archives, and
 //! what to do when 7-Zip is missing.
 
-use iced::widget::{Space, button, column, container, row, text};
+use iced::widget::{button, column, container, row, text};
 use iced::{Alignment, Length};
 
 use crate::app::{App, Message, Screen, SevenState};
+use crate::fonts;
 use crate::icons::{Icon, icon};
 use crate::theme::{self, Tone};
 use crate::ui::{self, El};
 
-fn action_card<'a>(i: Icon, title: &'a str, body: &'a str, shortcut: String, msg: Message) -> El<'a> {
+/// One of the main actions: an icon, what it does, and its shortcut.
+fn action<'a>(i: Icon, title: &'a str, body: &'a str, shortcut: String, msg: Message) -> El<'a> {
     button(
-        column![
-            ui::icon_tile(i, Tone::Accent, 44.0),
-            Space::new().height(4),
-            ui::heading(title),
-            ui::muted(body).size(13),
-            Space::new().height(Length::Fill),
-            row![Space::new().width(Length::Fill), ui::kbd(shortcut)],
+        row![
+            crate::icons::tinted(i, 18.0, |t| t.primary),
+            column![text(title).size(14).font(fonts::MEDIUM), ui::small(body)].spacing(1).width(Length::Fill),
+            ui::kbd(shortcut),
         ]
-        .spacing(6)
-        .height(Length::Fixed(176.0)),
+        .spacing(14)
+        .align_y(Alignment::Center),
     )
-    .padding(20)
+    .padding([11, 14])
     .width(Length::Fill)
-    .style(theme::card_button)
+    .style(theme::list_row(false))
     .on_press(msg)
     .into()
 }
 
 pub fn view(app: &App) -> El<'_> {
     let modifier = ui::shortcut_label();
-    let header = ui::page_header(
-        "Welcome",
-        "Open, create and extract archives with the 7-Zip installed on this computer.",
-        vec![],
-    );
+    let header = ui::page_header("Home", "Open, create and extract archives with the 7-Zip on this computer.", vec![]);
 
     let mut body = column![].spacing(ui::XL);
 
@@ -47,74 +42,86 @@ pub fn view(app: &App) -> El<'_> {
         _ => {}
     }
 
-    let drop = container(
-        column![
-            ui::icon_tile(Icon::Upload, Tone::Accent, 52.0),
-            ui::heading("Drop files here").size(17),
-            ui::muted("An archive opens it; anything else starts a new archive."),
-        ]
-        .spacing(10)
-        .align_x(Alignment::Center),
-    )
-    .padding(32)
-    .center_x(Length::Fill)
-    .style(theme::drop_zone(false));
-    body = body.push(drop);
-
+    let actions = ui::list(vec![
+        action(
+            Icon::FolderOpen,
+            "Open an archive…",
+            "7z, ZIP, RAR, TAR, ISO and every other format 7-Zip reads, split archives included.",
+            format!("{modifier} O"),
+            Message::OpenDialog,
+        ),
+        action(
+            Icon::PackagePlus,
+            "New archive",
+            "Compress files and folders into a 7z, ZIP or TAR, with a password or in volumes.",
+            format!("{modifier} N"),
+            Message::Navigate(Screen::Compress),
+        ),
+        action(
+            Icon::FolderOutput,
+            "Extract…",
+            "Unpack an archive into a folder of your choice.",
+            format!("{modifier} E"),
+            Message::Navigate(Screen::Extract),
+        ),
+    ]);
+    body = body.push(actions);
+    body = body.push(recent(app));
     body = body.push(
         row![
-            action_card(
-                Icon::FolderOpen,
-                "Open an archive",
-                "Browse 7z, ZIP, RAR, TAR, ISO and 50 more formats.",
-                format!("{modifier} O"),
-                Message::OpenDialog
-            ),
-            action_card(
-                Icon::PackagePlus,
-                "Compress",
-                "Make a 7z, ZIP or TAR with encryption and split volumes.",
-                format!("{modifier} N"),
-                Message::Navigate(Screen::Compress)
-            ),
-            action_card(
-                Icon::FolderOutput,
-                "Extract",
-                "Unpack an archive where you want it, keeping its folders.",
-                format!("{modifier} E"),
-                Message::Navigate(Screen::Extract)
-            ),
+            icon(Icon::Upload, 14.0),
+            ui::small("Drop an archive anywhere on this window to open it, or other files to compress them.")
         ]
-        .spacing(ui::L),
+        .spacing(8)
+        .align_y(Alignment::Center),
     );
-
-    body = body.push(recent(app));
     ui::page(header, body.into())
 }
 
 fn recent(app: &App) -> El<'_> {
+    let heading = row![
+        text("Recent").size(13).font(fonts::SEMIBOLD).width(Length::Fill),
+        ui::ghost(
+            None,
+            "Clear",
+            (!app.settings.recent.is_empty())
+                .then_some(Message::Preferences(crate::screens::preferences::Msg::ClearRecent))
+        ),
+    ]
+    .align_y(Alignment::Center);
     if app.settings.recent.is_empty() {
-        return ui::section("Recent archives", None, ui::muted("Archives you open appear here.").into());
+        let empty = container(ui::muted("Archives you open will be listed here.").size(13))
+            .padding([14, 14])
+            .width(Length::Fill)
+            .style(theme::card);
+        return column![heading, empty].spacing(ui::S).into();
     }
-    let rows = app.settings.recent.iter().map(|path| {
-        let name = path.file_name().map_or_else(|| path.display().to_string(), |n| n.to_string_lossy().into_owned());
-        let folder = path.parent().map(|p| p.display().to_string()).unwrap_or_default();
-        button(
-            row![
-                icon(Icon::FileArchive, 18.0),
-                column![ui::strong(name), ui::small(folder)].spacing(1).width(Length::Fill),
-                icon(Icon::ChevronRight, 16.0),
-            ]
-            .spacing(12)
-            .align_y(Alignment::Center),
-        )
-        .padding([8, 10])
-        .width(Length::Fill)
-        .style(theme::list_row(false))
-        .on_press(Message::Open(path.clone(), None))
-        .into()
-    });
-    ui::section("Recent archives", None, column(rows).spacing(2).into())
+    let rows = app
+        .settings
+        .recent
+        .iter()
+        .map(|path| {
+            let name =
+                path.file_name().map_or_else(|| path.display().to_string(), |n| n.to_string_lossy().into_owned());
+            let folder = path.parent().map(|p| p.display().to_string()).unwrap_or_default();
+            button(
+                row![
+                    icon(Icon::FileArchive, 16.0),
+                    text(name).size(13).font(fonts::MEDIUM).wrapping(text::Wrapping::None),
+                    container(ui::small(folder).wrapping(text::Wrapping::None)).width(Length::Fill).clip(true),
+                    icon(Icon::ChevronRight, 14.0),
+                ]
+                .spacing(12)
+                .align_y(Alignment::Center),
+            )
+            .padding([9, 14])
+            .width(Length::Fill)
+            .style(theme::list_row(false))
+            .on_press(Message::Open(path.clone(), None))
+            .into()
+        })
+        .collect();
+    column![heading, ui::list(rows)].spacing(ui::S).into()
 }
 
 /// Explains how to install 7-Zip, with copyable commands.
@@ -132,7 +139,7 @@ pub fn missing<'a>(invalid: Option<(String, String)>) -> El<'a> {
     let methods = coffer_core::install::methods().iter().map(|m| {
         let right: El<'a> = match m.command {
             Some(command) => row![
-                container(ui::mono(command)).padding([6, 10]).style(theme::inset).width(Length::Fill),
+                container(ui::mono(command).size(12)).padding([5, 10]).style(theme::inset).width(Length::Fill),
                 ui::icon_button(Icon::Copy, "Copy", Some(Message::Copy(command.to_owned()))),
             ]
             .spacing(6)
@@ -150,19 +157,18 @@ pub fn missing<'a>(invalid: Option<(String, String)>) -> El<'a> {
     container(
         column![
             row![
-                ui::icon_tile(Icon::TriangleAlert, Tone::Warning, 40.0),
+                crate::icons::tinted(Icon::TriangleAlert, 18.0, |t| t.warning),
                 column![ui::heading(title), ui::muted(body).size(13)].spacing(2).width(Length::Fill),
                 ui::secondary(Some(Icon::RefreshCw), "Check again", Some(Message::Relocate)),
                 ui::ghost(None, "Settings", Some(Message::Navigate(Screen::Settings))),
             ]
-            .spacing(14)
+            .spacing(12)
             .align_y(Alignment::Center),
-            column(methods).spacing(8),
-            text("").size(1),
+            column(methods).spacing(6),
         ]
-        .spacing(16),
+        .spacing(14),
     )
-    .padding(20)
+    .padding(16)
     .style(theme::tinted(Tone::Warning))
     .into()
 }
