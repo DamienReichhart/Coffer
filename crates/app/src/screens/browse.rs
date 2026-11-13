@@ -349,27 +349,34 @@ pub fn view(app: &App) -> El<'_> {
         return body;
     };
 
+    iced::widget::responsive(move |size| layout(browser, size.width)).into()
+}
+
+/// The width of the details panel.
+const PANEL_W: f32 = 272.0;
+
+/// The browser at a given width: narrow windows drop the details panel, then
+/// the secondary columns and the toolbar labels, so names always have room.
+fn layout(browser: &Browser, width: f32) -> El<'_> {
+    let panel = browser.show_info && width >= 900.0;
+    let compact = width - if panel { PANEL_W } else { 0.0 } < 720.0;
     let content = column![
-        toolbar(browser),
+        toolbar(browser, compact),
         rule::horizontal(1).style(theme::hairline),
-        table(browser),
+        table(browser, compact),
         rule::horizontal(1).style(theme::hairline),
         status_bar(browser),
     ];
     let main = container(content).width(Length::Fill).height(Length::Fill);
-    if browser.show_info {
-        row![main, rule::vertical(1).style(theme::hairline), info_panel(browser)].into()
-    } else {
-        main.into()
-    }
+    if panel { row![main, rule::vertical(1).style(theme::hairline), info_panel(browser)].into() } else { main.into() }
 }
 
-/// A compact toolbar button: smaller than the form buttons, same styles.
-fn tool(i: Icon, label: &str, msg: Option<Message>) -> El<'_> {
-    ui::secondary(Some(i), label, msg).padding([5, 10]).into()
+/// A toolbar button: smaller than the form buttons, and only an icon when space is short.
+fn tool(i: Icon, label: &str, msg: Option<Message>, compact: bool) -> El<'_> {
+    if compact { ui::icon_button(i, label, msg) } else { ui::secondary(Some(i), label, msg).padding([5, 10]).into() }
 }
 
-fn toolbar(browser: &Browser) -> El<'_> {
+fn toolbar(browser: &Browser, compact: bool) -> El<'_> {
     let mut crumbs = row![].spacing(0).align_y(Alignment::Center);
     crumbs = crumbs.push(crumb(
         browser.name().to_owned(),
@@ -408,7 +415,7 @@ fn toolbar(browser: &Browser) -> El<'_> {
         .on_input(|q| Message::Browse(Msg::Search(q)))
         .padding(iced::Padding::new(6.0).left(30.0).right(10.0))
         .size(13)
-        .width(Length::Fixed(220.0))
+        .width(Length::Fixed(if compact { 170.0 } else { 220.0 }))
         .style(theme::input);
     let search = iced::widget::stack![
         search,
@@ -431,10 +438,10 @@ fn toolbar(browser: &Browser) -> El<'_> {
     .align_y(Alignment::Center);
     let actions = row![
         extract,
-        tool(Icon::FilePlus, "Add", Some(Message::Browse(Msg::AddDialog))),
-        tool(Icon::ShieldCheck, "Test", Some(Message::Browse(Msg::Test))),
-        tool(Icon::Pencil, "Rename", (browser.selection.len() == 1).then_some(Message::Browse(Msg::Rename))),
-        tool(Icon::Trash2, "Delete", has_selection.then_some(Message::Browse(Msg::Delete))),
+        tool(Icon::FilePlus, "Add", Some(Message::Browse(Msg::AddDialog)), compact),
+        tool(Icon::ShieldCheck, "Test", Some(Message::Browse(Msg::Test)), compact),
+        tool(Icon::Pencil, "Rename", (browser.selection.len() == 1).then_some(Message::Browse(Msg::Rename)), compact),
+        tool(Icon::Trash2, "Delete", has_selection.then_some(Message::Browse(Msg::Delete)), compact),
         Space::new().width(Length::Fill),
         ui::icon_button(Icon::RefreshCw, "Reload (F5)", Some(Message::Browse(Msg::Reload))),
         ui::icon_button(
@@ -470,21 +477,22 @@ fn header_cell<'a>(browser: &Browser, column: Column, label: &'a str, width: Len
     button(label).padding([5, 6]).width(width).style(theme::ghost).on_press(Message::Browse(Msg::Sort(column))).into()
 }
 
-fn table(browser: &Browser) -> El<'_> {
-    let header = container(
-        row![
-            Space::new().width(24),
-            header_cell(browser, Column::Name, "Name", Length::Fill, false),
-            header_cell(browser, Column::Size, "Size", Length::Fixed(SIZE_W), true),
-            header_cell(browser, Column::Packed, "Packed", Length::Fixed(PACKED_W), true),
-            header_cell(browser, Column::Modified, "Modified", Length::Fixed(DATE_W), false),
-            header_cell(browser, Column::Method, "Method", Length::Fixed(METHOD_W), false),
-        ]
-        .spacing(4)
-        .align_y(Alignment::Center),
-    )
-    .padding([3, 14])
-    .style(theme::table_header);
+fn table(browser: &Browser, compact: bool) -> El<'_> {
+    let mut cells = row![
+        Space::new().width(24),
+        header_cell(browser, Column::Name, "Name", Length::Fill, false),
+        header_cell(browser, Column::Size, "Size", Length::Fixed(SIZE_W), true),
+    ]
+    .spacing(4)
+    .align_y(Alignment::Center);
+    if !compact {
+        cells = cells.push(header_cell(browser, Column::Packed, "Packed", Length::Fixed(PACKED_W), true));
+    }
+    cells = cells.push(header_cell(browser, Column::Modified, "Modified", Length::Fixed(DATE_W), false));
+    if !compact {
+        cells = cells.push(header_cell(browser, Column::Method, "Method", Length::Fixed(METHOD_W), false));
+    }
+    let header = container(cells).padding([3, 14]).style(theme::table_header);
 
     let items = browser.items();
     if items.is_empty() {
@@ -499,7 +507,7 @@ fn table(browser: &Browser) -> El<'_> {
     }
     let total = items.len();
     let searching = !browser.search.trim().is_empty();
-    let rows = items.into_iter().take(MAX_ROWS).map(|node| entry_row(browser, node, searching));
+    let rows = items.into_iter().take(MAX_ROWS).map(|node| entry_row(browser, node, searching, compact));
     let mut list = column(rows).spacing(0).padding(Padding::new(4.0).left(8.0).right(14.0));
     if total > MAX_ROWS {
         list = list.push(
@@ -517,7 +525,7 @@ fn table(browser: &Browser) -> El<'_> {
     .into()
 }
 
-fn entry_row<'a>(browser: &Browser, node: &'a Node, searching: bool) -> El<'a> {
+fn entry_row<'a>(browser: &Browser, node: &'a Node, searching: bool, compact: bool) -> El<'a> {
     let selected = browser.selection.contains(&node.path);
     let file_icon = if node.is_dir {
         Icon::Folder
@@ -545,16 +553,20 @@ fn entry_row<'a>(browser: &Browser, node: &'a Node, searching: bool) -> El<'a> {
         let c = container(t).width(width).padding([0, 6]).clip(true);
         if right { c.align_right(Length::Fixed(width)).into() } else { c.into() }
     };
-    let cells = row![
+    let mut cells = row![
         container(crate::icons::tinted(file_icon, 15.0, tint)).width(24),
         container(name).width(Length::Fill).padding([0, 6]).clip(true),
         cell(size, SIZE_W, true),
-        cell(packed, PACKED_W, true),
-        cell(node.modified.clone().unwrap_or_default(), DATE_W, false),
-        cell(node.method.clone().unwrap_or_default(), METHOD_W, false),
     ]
     .spacing(4)
     .align_y(Alignment::Center);
+    if !compact {
+        cells = cells.push(cell(packed, PACKED_W, true));
+    }
+    cells = cells.push(cell(node.modified.clone().unwrap_or_default(), DATE_W, false));
+    if !compact {
+        cells = cells.push(cell(node.method.clone().unwrap_or_default(), METHOD_W, false));
+    }
     let row_box = container(cells).padding([5, 6]).width(Length::Fill).style(theme::row(selected));
     mouse_area(row_box)
         .on_press(Message::Browse(Msg::Select(node.path.clone())))
@@ -663,7 +675,7 @@ fn info_panel(browser: &Browser) -> El<'_> {
     }
 
     container(scrollable(container(panel).padding(16)).style(theme::scroll).height(Length::Fill))
-        .width(Length::Fixed(272.0))
+        .width(Length::Fixed(PANEL_W))
         .height(Length::Fill)
         .style(theme::side_panel)
         .into()
