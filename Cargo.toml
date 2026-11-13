@@ -7,7 +7,7 @@ default-members = ["crates/core", "crates/updater", "crates/app"]
 # CHANGELOG.md section) to release: the Release workflow refuses to rebuild a
 # version that already has a tag.
 [workspace.package]
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.92"
 license = "MIT"
