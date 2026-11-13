@@ -1,10 +1,12 @@
 //! Extracting an archive (or a selection from it) to a folder.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
+use coffer_core::format::bytes;
+use coffer_core::volumes::{self, VolumeSet};
 use coffer_core::{ExtractOptions, OverwriteMode};
-use iced::widget::{column, row, text};
-use iced::{Alignment, Length, Task};
+use iced::widget::{Space, column, row, text};
+use iced::{Alignment, Task};
 
 use crate::app::{App, Message, Screen};
 use crate::icons::Icon;
@@ -43,6 +45,8 @@ pub struct Form {
     pub open_when_done: bool,
     /// Entries chosen in the archive browser; empty extracts everything.
     pub only: Vec<String>,
+    /// The volumes, when the archive is split into several files.
+    pub volumes: Option<VolumeSet>,
 }
 
 impl Form {
@@ -58,12 +62,25 @@ impl Form {
             show_password: false,
             open_when_done: defaults.open_when_done,
             only: Vec::new(),
+            volumes: None,
         }
     }
 
     pub fn set_archive(&mut self, archive: PathBuf, defaults: &ExtractDefaults) {
         *self = Self { archive: archive.display().to_string(), ..Self::from_defaults(defaults) };
+        self.find_volumes();
         self.suggest();
+    }
+
+    /// Looks for the other volumes when the archive is one of several files.
+    fn find_volumes(&mut self) {
+        let archive = self.archive.trim();
+        self.volumes = if archive.is_empty() { None } else { volumes::detect(Path::new(archive)) };
+    }
+
+    /// The file 7-Zip is given: the first volume of a split archive.
+    pub fn archive_path(&self) -> PathBuf {
+        self.volumes.as_ref().map_or_else(|| PathBuf::from(self.archive.trim()), |set| set.primary.clone())
     }
 
     fn suggest(&mut self) {
@@ -74,15 +91,19 @@ impl Form {
             default_destination(&PathBuf::from(self.archive.trim()), self.into_folder).display().to_string();
     }
 
-    pub fn problem(&self) -> Option<&'static str> {
+    pub fn problem(&self) -> Option<String> {
         if self.archive.trim().is_empty() {
-            return Some("Choose the archive to extract.");
+            return Some("Choose the archive to extract.".into());
         }
         if !PathBuf::from(self.archive.trim()).is_file() {
-            return Some("The archive doesn't exist.");
+            return Some("The archive doesn't exist.".into());
+        }
+        if let Some(set) = self.volumes.as_ref().filter(|s| !s.is_complete()) {
+            let n = set.missing.len();
+            return Some(if n == 1 { "A volume is missing.".into() } else { format!("{n} volumes are missing.") });
         }
         if self.destination.trim().is_empty() {
-            return Some("Choose where to extract.");
+            return Some("Choose where to extract.".into());
         }
         None
     }
@@ -95,6 +116,7 @@ impl App {
             Msg::Archive(value) => {
                 form.archive = value;
                 form.only.clear();
+                form.find_volumes();
                 form.suggest();
             }
             Msg::BrowseArchive => {
@@ -136,7 +158,7 @@ impl App {
                     return Task::none();
                 }
                 let spec = Spec::Extract {
-                    archive: PathBuf::from(form.archive.trim()),
+                    archive: form.archive_path(),
                     options: ExtractOptions {
                         destination: PathBuf::from(form.destination.trim()),
                         overwrite: form.overwrite,
@@ -175,7 +197,7 @@ pub fn view(app: &App) -> El<'_> {
         column![
             ui::field(
                 "Archive",
-                Some("7z, ZIP, RAR, TAR, ISO and every format your 7-Zip reads."),
+                Some("7z, ZIP, RAR, TAR, ISO and every format your 7-Zip reads. Any volume of a split archive."),
                 ui::path_input(
                     "Choose an archive",
                     &form.archive,
@@ -183,6 +205,7 @@ pub fn view(app: &App) -> El<'_> {
                     Message::Extract(Msg::BrowseArchive)
                 ),
             ),
+            volumes_field(form.volumes.as_ref()),
             ui::field(
                 "Password",
                 Some("Only for encrypted archives."),
@@ -256,6 +279,63 @@ pub fn view(app: &App) -> El<'_> {
         _ => row![ui::fill(), start].into(),
     };
     body = body.push(footer);
-    let _ = Length::Fill;
     ui::page(header, body.into())
+}
+
+/// What the volumes of a split archive look like: how many, and which are missing.
+fn volumes_field(set: Option<&VolumeSet>) -> El<'_> {
+    let Some(set) = set else { return Space::new().into() };
+    let summary = format!("{} · {} · {}", set.scheme.label(), plural(set.volumes.len(), "file"), bytes(set.total_size));
+    let status: El<'_> = if set.is_complete() {
+        ui::small("Every volume is here. 7-Zip reads them as one archive.").into()
+    } else {
+        ui::banner(
+            Tone::Warning,
+            Icon::TriangleAlert,
+            text(crate::app::missing_volumes_message(set)).size(13).into(),
+            vec![],
+        )
+    };
+    ui::field(
+        "Volumes",
+        None,
+        column![
+            row![crate::icons::icon(Icon::Layers, 16.0), text(summary)].spacing(8).align_y(Alignment::Center),
+            status
+        ]
+        .spacing(6)
+        .into(),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn any_volume_extracts_the_whole_archive() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        for n in 1..=11 {
+            std::fs::write(dir.path().join(format!("backup.zip.{n:03}")), b"x").expect("write");
+        }
+        let mut form = Form::from_defaults(&ExtractDefaults::default());
+        form.set_archive(dir.path().join("backup.zip.007"), &ExtractDefaults::default());
+        let set = form.volumes.as_ref().expect("a split archive");
+        assert_eq!(set.volumes.len(), 11);
+        assert_eq!(form.archive_path(), dir.path().join("backup.zip.001"));
+        if ExtractDefaults::default().into_folder {
+            assert_eq!(PathBuf::from(&form.destination), dir.path().join("backup"));
+        }
+        assert_eq!(form.problem(), None);
+
+        std::fs::remove_file(dir.path().join("backup.zip.004")).expect("remove");
+        form.update_archive_for_test();
+        assert_eq!(form.problem().as_deref(), Some("A volume is missing."));
+    }
+
+    impl Form {
+        fn update_archive_for_test(&mut self) {
+            self.find_volumes();
+        }
+    }
 }
