@@ -92,7 +92,8 @@ pub fn parse_name(name: &str) -> Option<Part> {
 
     // name.ext.001: three digits, or more with leading zeros, so a year
     // (`report.2024`) is not mistaken for volume 2024.
-    let zero_padded = lower.len() == 3 || (lower.len() > 3 && lower.starts_with('0'));
+    // At most five digits keeps every index far from overflow and from absurd gaps.
+    let zero_padded = lower.len() == 3 || (4..=5).contains(&lower.len()) && lower.starts_with('0');
     if zero_padded && lower.bytes().all(|b| b.is_ascii_digit()) {
         let index = lower.parse().ok()?;
         return Some(Part { scheme: Scheme::Numbered, base: stem.to_owned(), index, width: lower.len() });
@@ -101,7 +102,7 @@ pub fn parse_name(name: &str) -> Option<Part> {
     if lower == "rar" {
         if let Some((base, part)) = stem.rsplit_once('.')
             && let Some(digits) = part.get(..4).filter(|p| p.eq_ignore_ascii_case("part")).and(part.get(4..))
-            && !digits.is_empty()
+            && (1..=4).contains(&digits.len())
             && digits.bytes().all(|b| b.is_ascii_digit())
             && !base.is_empty()
         {
@@ -117,7 +118,7 @@ pub fn parse_name(name: &str) -> Option<Part> {
     let mut chars = lower.chars();
     let letter = chars.next()?;
     let digits = chars.as_str();
-    if digits.len() >= 2 && digits.bytes().all(|b| b.is_ascii_digit()) {
+    if (2..=3).contains(&digits.len()) && digits.bytes().all(|b| b.is_ascii_digit()) {
         let number: u32 = digits.parse().ok()?;
         return match letter {
             'r' => {
@@ -170,10 +171,11 @@ pub fn detect(path: &Path) -> Option<VolumeSet> {
         let name = entry.file_name();
         let Some(name) = name.to_str() else { continue };
         let Some(sibling) = parse_name(name) else { continue };
-        if sibling.scheme != part.scheme || sibling.base != part.base {
+        if sibling.scheme != part.scheme || !same_base(&sibling.base, &part.base) {
             continue;
         }
-        if entry.file_type().is_ok_and(|t| t.is_file() || t.is_symlink()) {
+        // `Path::is_file` follows symbolic links, and leaves out folders.
+        if entry.path().is_file() {
             found.push((sibling.index, entry.path(), name.to_owned()));
         }
     }
@@ -204,9 +206,16 @@ pub fn detect(path: &Path) -> Option<VolumeSet> {
     };
     let last_extension = extension(if part.scheme == Scheme::ZipSpanned { "zip" } else { "rar" });
 
-    let highest = found.iter().map(|(index, _, _)| *index).filter(|i| *i != u32::MAX).max().unwrap_or(0);
+    // A file alone is not a set, whatever its name says: `game.z64` is a ROM,
+    // `clip.264` a video, and a lone `.r00` or `.002` can't be opened anyway.
+    if found.len() < 2 {
+        return None;
+    }
+
+    let present: std::collections::HashSet<u32> = found.iter().map(|(index, _, _)| *index).collect();
+    let highest = present.iter().copied().filter(|i| *i != u32::MAX).max().unwrap_or(0);
     let mut missing: Vec<String> = (1..=highest)
-        .filter(|index| !found.iter().any(|(i, _, _)| i == index))
+        .filter(|index| !present.contains(index))
         .map(|index| part.file_name(index, &last_extension))
         .collect();
     if part.scheme == Scheme::ZipSpanned && !has_last_zip {
@@ -222,12 +231,14 @@ pub fn detect(path: &Path) -> Option<VolumeSet> {
 
     // In order: `.rar` has index 1 and a spanned `.zip` u32::MAX, so both sort right.
     let volumes: Vec<PathBuf> = found.into_iter().map(|(_, path, _)| path).collect();
-    // One complete volume is just an archive with an unusual name.
-    if volumes.len() == 1 && missing.is_empty() {
-        return None;
-    }
 
     Some(VolumeSet { scheme: part.scheme, primary, name: part.display_name(), volumes, missing, total_size })
+}
+
+/// Whether two volume names share their base. File systems that ignore case
+/// (Windows, macOS) do so here too, so `Movie.rar` and `movie.r00` match there.
+fn same_base(a: &str, b: &str) -> bool {
+    if cfg!(any(windows, target_os = "macos")) { a.eq_ignore_ascii_case(b) } else { a == b }
 }
 
 /// The file to give 7-Zip for `path`: the primary volume when `path` is one
@@ -237,13 +248,15 @@ pub fn primary(path: &Path) -> PathBuf {
 }
 
 /// Replaces the volumes of each set in `paths` by the set's primary volume,
-/// once, keeping the order of first appearance. Other paths are kept as they are.
+/// once, keeping the order of first appearance. Other paths are kept as they
+/// are, and so is a volume whose primary volume is not there.
 ///
 /// Dropping the eleven files of a split archive on the window gives one archive.
 pub fn collapse(paths: &[PathBuf]) -> Vec<PathBuf> {
     let mut out: Vec<PathBuf> = Vec::with_capacity(paths.len());
     for path in paths {
         let resolved = if path.is_file() { primary(path) } else { path.clone() };
+        let resolved = if resolved.is_file() { resolved } else { path.clone() };
         if !out.contains(&resolved) {
             out.push(resolved);
         }
@@ -276,11 +289,25 @@ mod tests {
 
     #[test]
     fn ignores_other_names() {
-        for name in ["notes.txt", "a.7z", "photo.r", "x.z00", "x.zz1", ".001", "x.01", "report.2024", "README"] {
+        for name in [
+            "notes.txt",
+            "a.7z",
+            "photo.r",
+            "x.z00",
+            "x.zz1",
+            ".001",
+            "x.01",
+            "report.2024",
+            "README",
+            "x.r4294967295",
+            "x.z4294967295",
+            "x.0100000000",
+        ] {
             assert_eq!(parse_name(name), None, "{name}");
         }
         // Not a numbered part: an ordinary RAR whose name contains a dot.
         assert_eq!(part("x.part.rar"), (Scheme::RarLegacy, "x.part".into(), 1));
+        assert_eq!(part("x.part99999999999.rar"), (Scheme::RarLegacy, "x.part99999999999".into(), 1));
     }
 
     #[test]
@@ -333,7 +360,7 @@ mod tests {
         let dir = tempfile::tempdir().expect("tempdir");
         touch(dir.path(), &["new.part01.rar", "new.part02.rar", "new.part03.rar"]);
         touch(dir.path(), &["old.rar", "old.r00", "old.r01", "old.r03"]);
-        touch(dir.path(), &["single.rar", "lone.7z.001", "orphan.r00"]);
+        touch(dir.path(), &["single.rar", "lone.7z.001", "orphan.r00", "game.z64", "clip.264"]);
 
         let new = detect(&dir.path().join("new.part03.rar")).expect("new style");
         assert_eq!(new.primary, dir.path().join("new.part01.rar"));
@@ -348,7 +375,11 @@ mod tests {
         assert_eq!(detect(&dir.path().join("single.rar")), None);
         assert_eq!(primary(&dir.path().join("single.rar")), dir.path().join("single.rar"));
         assert_eq!(detect(&dir.path().join("lone.7z.001")), None);
-        assert_eq!(detect(&dir.path().join("orphan.r00")).map(|s| s.missing), Some(vec!["orphan.rar".to_owned()]));
+        // Lone files are never sets, however they are named.
+        for name in ["orphan.r00", "game.z64", "clip.264"] {
+            assert_eq!(detect(&dir.path().join(name)), None, "{name}");
+            assert_eq!(collapse(&[dir.path().join(name)]), [dir.path().join(name)], "{name}");
+        }
     }
 
     #[test]
@@ -365,6 +396,18 @@ mod tests {
         std::fs::remove_file(dir.path().join("site.zip")).expect("remove");
         let set = detect(&dir.path().join("site.z02")).expect("a set");
         assert_eq!(set.missing, ["site.zip"]);
+        // Its primary is gone: dropping the volumes keeps them as they are.
+        let dropped = [dir.path().join("site.z01"), dir.path().join("site.z02")];
+        assert_eq!(collapse(&dropped), dropped);
+    }
+
+    #[test]
+    fn folders_are_not_volumes() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        touch(dir.path(), &["a.7z.001", "a.7z.002"]);
+        std::fs::create_dir(dir.path().join("a.7z.003")).expect("mkdir");
+        let set = detect(&dir.path().join("a.7z.001")).expect("a set");
+        assert_eq!(set.volumes.len(), 2);
     }
 
     #[test]
