@@ -68,6 +68,8 @@ pub struct Browser {
     pub sort: (Column, bool),
     pub password: Option<String>,
     pub show_info: bool,
+    /// The volumes, when the archive is split into several files.
+    pub volumes: Option<coffer_core::volumes::VolumeSet>,
 }
 
 impl Browser {
@@ -76,7 +78,9 @@ impl Browser {
         // An archive with a single top folder opens inside it.
         let roots = tree.children("");
         let cwd = if roots.len() == 1 && roots[0].is_dir { roots[0].path.clone() } else { String::new() };
+        let volumes = coffer_core::volumes::detect(&path);
         Self {
+            volumes,
             path,
             listing,
             tree,
@@ -90,8 +94,12 @@ impl Browser {
         }
     }
 
+    /// The archive's name; a split archive is named without its volume number.
     pub fn name(&self) -> &str {
-        self.path.file_name().and_then(|n| n.to_str()).unwrap_or("Archive")
+        match &self.volumes {
+            Some(set) => &set.name,
+            None => self.path.file_name().and_then(|n| n.to_str()).unwrap_or("Archive"),
+        }
     }
 
     /// The items to show: the current folder, or search results anywhere.
@@ -246,7 +254,7 @@ impl App {
                     self.toast(Tone::Warning, format!("7-Zip can't add files to {kind} archives."), None);
                     return Task::none();
                 };
-                if browser.listing.info.volumes.is_some_and(|v| v > 1) {
+                if browser.volumes.is_some() || browser.listing.info.volumes.is_some_and(|v| v > 1) {
                     self.toast(Tone::Warning, "Split archives can't be changed.", None);
                     return Task::none();
                 }
@@ -538,7 +546,7 @@ fn status_bar(browser: &Browser) -> El<'_> {
         "{} · {} · {}",
         plural(listing.file_count(), "file"),
         bytes(listing.total_size()),
-        listing.info.physical_size.map(|p| format!("{} on disk", bytes(p))).unwrap_or_default(),
+        listing.archive_size().map(|p| format!("{} on disk", bytes(p))).unwrap_or_default(),
     );
     let right = if browser.selection.is_empty() {
         String::new()
@@ -561,7 +569,7 @@ fn info_panel(browser: &Browser) -> El<'_> {
         ("Files", listing.file_count().to_string()),
         ("Unpacked size", bytes(listing.total_size())),
     ];
-    if let Some(physical) = info.physical_size {
+    if let Some(physical) = listing.archive_size() {
         props.push(("Archive size", bytes(physical)));
         if let Some(r) = ratio(listing.total_size(), physical) {
             props.push(("Ratio", r));
@@ -574,8 +582,10 @@ fn info_panel(browser: &Browser) -> El<'_> {
         props.push(("Solid", yes_no(solid)));
     }
     props.push(("Encrypted", yes_no(info.encrypted)));
-    if let Some(volumes) = info.volumes {
-        props.push(("Volumes", volumes.to_string()));
+    match (&browser.volumes, info.volumes) {
+        (Some(set), _) => props.push(("Volumes", format!("{} files", set.volumes.len()))),
+        (None, Some(volumes)) if volumes > 1 => props.push(("Volumes", volumes.to_string())),
+        _ => {}
     }
 
     let mut panel = column![
@@ -635,9 +645,12 @@ pub fn default_destination(archive: &Path, into_folder: bool) -> PathBuf {
     dir.join(archive_stem(archive))
 }
 
-/// `photos.tar.gz` → `photos`, `backup.7z.001` → `backup`.
+/// `photos.tar.gz` → `photos`, `backup.7z.001` → `backup`, `movie.part2.rar` → `movie`.
 pub fn archive_stem(archive: &Path) -> String {
     let mut name = archive.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    if let Some(part) = coffer_core::volumes::parse_name(&name) {
+        name = part.display_name();
+    }
     while let Some((stem, ext)) = name.rsplit_once('.') {
         let ext = ext.to_ascii_lowercase();
         let known = crate::app::ARCHIVE_EXTENSIONS.contains(&ext.as_str()) || ext.chars().all(|c| c.is_ascii_digit());
@@ -657,6 +670,10 @@ mod tests {
     fn stems() {
         assert_eq!(archive_stem(Path::new("/x/photos.tar.gz")), "photos");
         assert_eq!(archive_stem(Path::new("backup.7z.001")), "backup");
+        assert_eq!(archive_stem(Path::new("backup.zip.011")), "backup");
+        assert_eq!(archive_stem(Path::new("movie.part02.rar")), "movie");
+        assert_eq!(archive_stem(Path::new("movie.r03")), "movie");
+        assert_eq!(archive_stem(Path::new("site.z01")), "site");
         assert_eq!(archive_stem(Path::new("report.v2.zip")), "report.v2");
         assert_eq!(archive_stem(Path::new(".zip")), ".zip");
         assert_eq!(default_destination(Path::new("/x/a.zip"), true), Path::new("/x/a"));
