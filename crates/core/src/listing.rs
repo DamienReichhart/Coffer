@@ -12,6 +12,8 @@ pub struct ArchiveInfo {
     /// 7-Zip's name of the format: `7z`, `zip`, `tar`, `Rar5`…
     pub kind: String,
     pub physical_size: Option<u64>,
+    /// The size of every volume together, for a multi-volume archive.
+    pub total_physical_size: Option<u64>,
     pub method: Option<String>,
     pub solid: Option<bool>,
     pub blocks: Option<u64>,
@@ -118,6 +120,11 @@ impl Listing {
         self.entries.iter().filter(|e| !e.is_dir).map(|e| e.size).sum()
     }
 
+    /// The size of the archive on disk: every volume for a multi-volume archive.
+    pub fn archive_size(&self) -> Option<u64> {
+        self.info.total_physical_size.or(self.info.physical_size)
+    }
+
     pub fn file_count(&self) -> usize {
         self.entries.iter().filter(|e| !e.is_dir).count()
     }
@@ -157,6 +164,13 @@ fn apply_info(info: &mut ArchiveInfo, key: &str, value: &str) {
         "Path" if info.path.as_os_str().is_empty() => info.path = PathBuf::from(value),
         "Type" => value.trim().clone_into(&mut info.kind),
         "Physical Size" => info.physical_size = number(value),
+        "Total Physical Size" => info.total_physical_size = number(value),
+        // An error 7-Zip worked around while opening, e.g. `Missing volume : a.z05`.
+        "ERROR" | "WARNING" => {
+            if let Some(message) = text(value).filter(|m| !info.warnings.contains(m)) {
+                info.warnings.push(message);
+            }
+        }
         "Method" => info.method = text(value),
         "Solid" => info.solid = flag(value),
         "Blocks" => info.blocks = number(value),
@@ -401,6 +415,18 @@ mod tests {
         assert_eq!(listing.total_size(), 300_012);
         assert_eq!(listing.file_count(), 3);
         assert!(!listing.info.encrypted);
+    }
+
+    #[test]
+    fn reads_the_size_of_every_volume() {
+        let out = "Listing archive: span.zip\n\n--\nPath = span.zip\nType = zip\n\
+                   ERROR = Missing volume : span.z05\nPhysical Size = 236139\nTotal Physical Size = 2693739\n\
+                   Multivolume = +\nVolume Index = 9\nVolumes = 10\n\n----------\nPath = a.txt\nFolder = -\n\
+                   Size = 3\n\n";
+        let listing = Listing::parse(out).expect("parse");
+        assert_eq!(listing.info.volumes, Some(10));
+        assert_eq!(listing.archive_size(), Some(2_693_739));
+        assert_eq!(listing.info.warnings, ["Missing volume : span.z05"]);
     }
 
     #[test]

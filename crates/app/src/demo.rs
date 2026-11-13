@@ -106,6 +106,7 @@ pub fn listing() -> Listing {
             path: home().join("Documents").join("website-redesign.7z"),
             kind: "7z".to_owned(),
             physical_size: Some(14_870_112),
+            total_physical_size: None,
             method: Some("LZMA2:24 BCJ".to_owned()),
             solid: Some(true),
             blocks: Some(2),
