@@ -150,6 +150,20 @@ jobs:
             chmod +x "$appimage"
             "$appimage" --version # APPIMAGE_EXTRACT_AND_RUN is set by the tools script
           done
+      # The signed APT and RPM repositories the website publishes, built and
+      # installed from end to end. Pull requests never see the real key, so a
+      # throwaway one signs here; the scripts are the ones releases run.
+      - name: Create a throwaway signing key
+        run: |
+          gpg --batch --pinentry-mode loopback --passphrase '' \
+            --quick-gen-key 'Coffer CI <noreply@example.invalid>' rsa3072 sign 1d
+          gpg --armor --export > "$RUNNER_TEMP/ci-key.asc"
+      - name: Sign the RPM
+        run: scripts/ci/sign-rpm.sh dist/*.rpm
+      - name: Install from the APT and RPM repositories
+        run: |
+          sudo apt-get install -y --no-install-recommends apt-utils createrepo-c
+          scripts/ci/test-package-repos.sh dist "$RUNNER_TEMP/ci-key.asc"
 
   # The website: lint, unit tests, real screenshots from the app, and a full
   # build (types, internal links).

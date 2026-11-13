@@ -20,7 +20,7 @@ const { root } = Astro.props;
     <div class="card repos__card">
       <h3>Debian, Ubuntu and derivatives (apt)</h3>
       <Command command={`curl -fsSL ${root}/coffer.asc | sudo gpg --dearmor -o /usr/share/keyrings/coffer.gpg`} />
-      <Command command={`echo "deb [signed-by=/usr/share/keyrings/coffer.gpg] ${root}/ apt/" | sudo tee /etc/apt/sources.list.d/coffer.list`} />
+      <Command command={`echo "deb [signed-by=/usr/share/keyrings/coffer.gpg] ${root}/ stable main" | sudo tee /etc/apt/sources.list.d/coffer.list`} />
       <Command command={`sudo apt update && sudo apt install ${PACKAGE}`} />
     </div>
     <div class="card repos__card">
