@@ -3,10 +3,10 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
-  <key>CFBundleDisplayName</key><string>7zip-GUI</string>
-  <key>CFBundleName</key><string>7zip-GUI</string>
-  <key>CFBundleExecutable</key><string>7zip-gui</string>
-  <key>CFBundleIdentifier</key><string>io.github.damienreichhart.SevenZipGui</string>
+  <key>CFBundleDisplayName</key><string>Coffer</string>
+  <key>CFBundleName</key><string>Coffer</string>
+  <key>CFBundleExecutable</key><string>coffer</string>
+  <key>CFBundleIdentifier</key><string>io.github.damienreichhart.Coffer</string>
   <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundlePackageType</key><string>APPL</string>

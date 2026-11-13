@@ -5,12 +5,12 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 
+use coffer_core::format::{bytes, ratio};
+use coffer_core::listing::{Node, Tree, natural_cmp, parent};
+use coffer_core::{ArchiveFormat, Listing};
 use iced::keyboard::{Key, Modifiers, key::Named};
 use iced::widget::{Space, button, column, container, mouse_area, row, rule, scrollable, text, text_input};
 use iced::{Alignment, Length, Padding, Task};
-use sevenzip_core::format::{bytes, ratio};
-use sevenzip_core::listing::{Node, Tree, natural_cmp, parent};
-use sevenzip_core::{ArchiveFormat, Listing};
 
 use crate::app::{App, Message, Screen};
 use crate::fonts;
@@ -171,7 +171,7 @@ impl Browser {
 fn preview_dir() -> PathBuf {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     let n = COUNTER.fetch_add(1, AtomicOrdering::Relaxed);
-    std::env::temp_dir().join(format!("7zip-gui-{}-{n}", std::process::id()))
+    std::env::temp_dir().join(format!("coffer-{}-{n}", std::process::id()))
 }
 
 impl App {
@@ -250,7 +250,7 @@ impl App {
                     self.toast(Tone::Warning, "Split archives can't be changed.", None);
                     return Task::none();
                 }
-                let options = sevenzip_core::CompressOptions {
+                let options = coffer_core::CompressOptions {
                     format,
                     level: self.settings.compress.level,
                     solid: self.settings.compress.solid,

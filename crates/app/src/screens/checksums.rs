@@ -3,10 +3,10 @@
 
 use std::path::PathBuf;
 
+use coffer_core::hash::FileHashes;
+use coffer_core::{HashAlgorithm, Version};
 use iced::widget::{button, column, container, progress_bar, row, text};
 use iced::{Alignment, Length, Task};
-use sevenzip_core::hash::FileHashes;
-use sevenzip_core::{HashAlgorithm, Version};
 
 use crate::app::{App, Message};
 use crate::icons::{Icon, icon};
@@ -65,7 +65,7 @@ impl State {
         if self.job != Some(id) {
             return;
         }
-        match output.map(sevenzip_core::hash::parse) {
+        match output.map(coffer_core::hash::parse) {
             Some(Ok(results)) => self.results = results,
             Some(Err(error)) => self.error = Some(error.to_string()),
             None => {}
@@ -270,7 +270,7 @@ fn results(state: &State) -> El<'_> {
             row![
                 icon(Icon::File, 16.0),
                 ui::strong(file.path.as_str()).width(Length::Fill),
-                ui::small(file.size.map(sevenzip_core::format::bytes).unwrap_or_default()),
+                ui::small(file.size.map(coffer_core::format::bytes).unwrap_or_default()),
             ]
             .spacing(8)
             .align_y(Alignment::Center)

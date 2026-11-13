@@ -154,8 +154,8 @@ pub fn update_banner(app: &App) -> El<'_> {
                         "Downloading {} {} — {} of {}",
                         crate::APP_NAME,
                         update.version,
-                        sevenzip_core::format::bytes(progress.received),
-                        sevenzip_core::format::bytes(progress.total)
+                        coffer_core::format::bytes(progress.received),
+                        coffer_core::format::bytes(progress.total)
                     )),
                     progress_bar(0.0..=1.0, ratio).girth(6).style(theme::progress(Tone::Accent)),
                 ]

@@ -37,7 +37,7 @@ pub fn render(root: &Path) -> Result<()> {
 
     let windows = root.join("packaging/windows");
     std::fs::create_dir_all(&windows)?;
-    std::fs::write(windows.join("7zip-gui.ico"), ico(&tree)?)?;
+    std::fs::write(windows.join("coffer.ico"), ico(&tree)?)?;
 
     let macos = root.join("packaging/macos");
     std::fs::create_dir_all(&macos)?;

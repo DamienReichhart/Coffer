@@ -1,4 +1,4 @@
-//! Everything 7zip-GUI needs to drive a 7-Zip command-line executable.
+//! Everything Coffer needs to drive a 7-Zip command-line executable.
 //!
 //! 7-Zip itself is never bundled: [`locate`] finds the copy the user
 //! installed, [`command`] turns typed options into a command line, [`runner`]

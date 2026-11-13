@@ -6,7 +6,7 @@ description: Formats, compression levels and methods, encryption, split volumes 
 import DocScreenshot from '@/components/DocScreenshot.astro';
 
 Open **Compress** from the welcome screen or the sidebar, drop files and folders onto the window, or
-run `7zip-gui --compress <paths…>`.
+run `coffer --compress <paths…>`.
 
 <DocScreenshot name="compress" alt="The compress screen" />
 
@@ -30,7 +30,7 @@ Choose where to save the archive. The file extension follows the format you choo
 | **GZIP**, **BZIP2**, **XZ** | Compressing one file | Compress a **single file** only — for folders, create a TAR first, then compress it. |
 | **WIM** | Windows imaging | Stores Windows file metadata. |
 
-7zip-GUI tells you when a choice doesn’t fit — for example a GZIP of several files.
+Coffer tells you when a choice doesn’t fit — for example a GZIP of several files.
 
 ## Compression level
 

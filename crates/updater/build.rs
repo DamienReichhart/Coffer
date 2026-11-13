@@ -9,9 +9,9 @@ use std::path::Path;
 fn main() {
     let key = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packaging/keys/update.pub");
     println!("cargo:rerun-if-changed={}", key.display());
-    println!("cargo:rerun-if-env-changed=SEVENZIP_GUI_UPDATE_KEY");
-    println!("cargo:rerun-if-env-changed=SEVENZIP_GUI_REQUIRE_UPDATE_KEY");
-    let contents = std::env::var("SEVENZIP_GUI_UPDATE_KEY")
+    println!("cargo:rerun-if-env-changed=COFFER_UPDATE_KEY");
+    println!("cargo:rerun-if-env-changed=COFFER_REQUIRE_UPDATE_KEY");
+    let contents = std::env::var("COFFER_UPDATE_KEY")
         .ok()
         .or_else(|| std::fs::read_to_string(&key).ok())
         .map(|text| {
@@ -25,9 +25,8 @@ fn main() {
         .filter(|line| !line.is_empty());
     // Release builds set this, so an installer can never ship unable to update.
     assert!(
-        contents.is_some()
-            || !std::env::var("SEVENZIP_GUI_REQUIRE_UPDATE_KEY").is_ok_and(|v| !v.is_empty() && v != "0"),
-        "SEVENZIP_GUI_REQUIRE_UPDATE_KEY is set but packaging/keys/update.pub is missing: run scripts/setup-signing.sh"
+        contents.is_some() || !std::env::var("COFFER_REQUIRE_UPDATE_KEY").is_ok_and(|v| !v.is_empty() && v != "0"),
+        "COFFER_REQUIRE_UPDATE_KEY is set but packaging/keys/update.pub is missing: run scripts/setup-signing.sh"
     );
     let out = Path::new(&std::env::var("OUT_DIR").expect("OUT_DIR")).join("update_key.rs");
     let code = match contents {

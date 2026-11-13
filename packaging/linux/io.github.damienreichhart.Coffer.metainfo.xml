@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.damienreichhart.SevenZipGui</id>
-  <name>7zip-GUI</name>
+  <id>io.github.damienreichhart.Coffer</id>
+  <name>Coffer</name>
   <summary>A modern desktop interface for 7-Zip</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
@@ -10,7 +10,7 @@
   </developer>
   <description>
     <p>
-      7zip-GUI opens, creates, extracts, tests and checksums archives with the 7-Zip
+      Coffer opens, creates, extracts, tests and checksums archives with the 7-Zip
       command-line program installed on your computer. It is fast, native and keyboard friendly.
     </p>
     <ul>
@@ -21,20 +21,20 @@
     </ul>
     <p>7-Zip is not included: install it from your distribution (the 7zip package).</p>
   </description>
-  <launchable type="desktop-id">io.github.damienreichhart.SevenZipGui.desktop</launchable>
-  <url type="homepage">https://damienreichhart.github.io/7zip-GUI/</url>
-  <url type="bugtracker">https://github.com/DamienReichhart/7zip-GUI/issues</url>
-  <url type="vcs-browser">https://github.com/DamienReichhart/7zip-GUI</url>
-  <url type="help">https://damienreichhart.github.io/7zip-GUI/docs/</url>
+  <launchable type="desktop-id">io.github.damienreichhart.Coffer.desktop</launchable>
+  <url type="homepage">https://damienreichhart.github.io/Coffer/</url>
+  <url type="bugtracker">https://github.com/DamienReichhart/Coffer/issues</url>
+  <url type="vcs-browser">https://github.com/DamienReichhart/Coffer</url>
+  <url type="help">https://damienreichhart.github.io/Coffer/docs/</url>
   <screenshots>
     <screenshot type="default">
       <caption>Browsing an archive</caption>
-      <image>https://damienreichhart.github.io/7zip-GUI/screenshots/browse.png</image>
+      <image>https://damienreichhart.github.io/Coffer/screenshots/browse.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
   <provides>
-    <binary>7zip-gui</binary>
+    <binary>coffer</binary>
   </provides>
   <releases>
     <release version="@VERSION@" date="@DATE@"/>

@@ -5,12 +5,12 @@
 
 use std::path::{Path, PathBuf};
 
-use futures_util::StreamExt;
-use sevenzip_core::command::{self, Dialect};
-use sevenzip_core::listing::Tree;
-use sevenzip_core::{
+use coffer_core::command::{self, Dialect};
+use coffer_core::listing::Tree;
+use coffer_core::{
     ArchiveFormat, CompressOptions, Error, Event, ExtractOptions, HashAlgorithm, OverwriteMode, SevenZip, runner,
 };
+use futures_util::StreamExt;
 
 async fn seven() -> Option<SevenZip> {
     match SevenZip::locate(None).await {
@@ -34,7 +34,7 @@ fn sample(dir: &Path) -> PathBuf {
     src
 }
 
-async fn finish(seven: &SevenZip, args: command::Args) -> Result<sevenzip_core::Outcome, std::sync::Arc<Error>> {
+async fn finish(seven: &SevenZip, args: command::Args) -> Result<coffer_core::Outcome, std::sync::Arc<Error>> {
     let mut stream = Box::pin(runner::run(seven.clone(), args, None));
     let mut last = None;
     while let Some(event) = stream.next().await {
@@ -121,7 +121,7 @@ async fn checksums() {
     let file = src.join("a.txt");
     let args = command::hash(Dialect::of(&seven), &[file], &[HashAlgorithm::Crc32, HashAlgorithm::Sha256]);
     let outcome = finish(&seven, args).await.expect("hash");
-    let files = sevenzip_core::hash::parse(&outcome.output).expect("parse");
+    let files = coffer_core::hash::parse(&outcome.output).expect("parse");
     assert_eq!(files.len(), 1);
     assert_eq!(files[0].digests[0].1, "363A3020");
     assert_eq!(files[0].digests[1].1, "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03");

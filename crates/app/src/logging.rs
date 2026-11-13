@@ -1,7 +1,7 @@
 //! Logging to a file in the data folder (and to stderr in debug builds).
 //!
 //! Passwords never reach the log: command lines are redacted in
-//! `sevenzip_core::runner` before they are logged.
+//! `coffer_core::runner` before they are logged.
 
 use std::fs::{File, OpenOptions};
 use std::sync::Mutex;
@@ -37,10 +37,10 @@ pub fn init() -> Guard {
 fn log_file() -> Option<File> {
     let dir = crate::settings::paths::log_dir()?;
     std::fs::create_dir_all(&dir).ok()?;
-    let path = dir.join("7zip-gui.log");
+    let path = dir.join("coffer.log");
     let too_big = std::fs::metadata(&path).is_ok_and(|m| m.len() > MAX_LOG_BYTES);
     if too_big {
-        let _ = std::fs::rename(&path, dir.join("7zip-gui.old.log"));
+        let _ = std::fs::rename(&path, dir.join("coffer.old.log"));
     }
     OpenOptions::new().create(true).append(true).open(path).ok()
 }

@@ -1,16 +1,16 @@
 ---
 title: Security and privacy
-description: What 7zip-GUI does with your files, passwords and network — honestly.
+description: What Coffer does with your files, passwords and network — honestly.
 ---
 
 ## Your files
 
-7zip-GUI only reads and writes the files you point it at, through 7-Zip. It never uploads anything.
+Coffer only reads and writes the files you point it at, through 7-Zip. It never uploads anything.
 Archives are listed without being extracted, and extraction writes only into the destination you
 choose.
 
 7-Zip refuses to write outside the destination for entries with absolute paths or `..` components
-(“zip slip”), and 7zip-GUI passes destinations to it explicitly.
+(“zip slip”), and Coffer passes destinations to it explicitly.
 
 ## Passwords
 
@@ -44,6 +44,6 @@ signatures and build provenance attestations — see [Verifying downloads](/docs
 ## Reporting a vulnerability
 
 Please report security issues privately through
-[GitHub Security Advisories](https://github.com/DamienReichhart/7zip-GUI/security/advisories/new)
+[GitHub Security Advisories](https://github.com/DamienReichhart/Coffer/security/advisories/new)
 rather than a public issue. Vulnerabilities in 7-Zip itself should go to the
 [7-Zip project](https://www.7-zip.org/).

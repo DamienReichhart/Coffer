@@ -11,26 +11,26 @@ import {
   siteRoot,
 } from './releases.mjs';
 
-const ROOT = 'https://damienreichhart.github.io/7zip-GUI';
+const ROOT = 'https://damienreichhart.github.io/Coffer';
 const HEX = (c) => c.repeat(64);
 
 describe('classifyAsset', () => {
   it('reads every installer the release publishes', () => {
     const cases = [
-      ['7zip-GUI-1.2.3-linux-x64.deb', 'linux-x64-deb'],
-      ['7zip-GUI-1.2.3-linux-arm64.deb', 'linux-arm64-deb'],
-      ['7zip-GUI-1.2.3-linux-x64.rpm', 'linux-x64-rpm'],
-      ['7zip-GUI-1.2.3-linux-arm64.AppImage', 'linux-arm64-appimage'],
-      ['7zip-GUI-1.2.3-windows-x64.msi', 'windows-x64-msi'],
-      ['7zip-GUI-1.2.3-windows-arm64.zip', 'windows-arm64-portable'],
-      ['7zip-GUI-1.2.3-macos-arm64.dmg', 'macos-arm64-dmg'],
-      ['7zip-GUI-1.2.3-macos-x64.dmg', 'macos-x64-dmg'],
+      ['Coffer-1.2.3-linux-x64.deb', 'linux-x64-deb'],
+      ['Coffer-1.2.3-linux-arm64.deb', 'linux-arm64-deb'],
+      ['Coffer-1.2.3-linux-x64.rpm', 'linux-x64-rpm'],
+      ['Coffer-1.2.3-linux-arm64.AppImage', 'linux-arm64-appimage'],
+      ['Coffer-1.2.3-windows-x64.msi', 'windows-x64-msi'],
+      ['Coffer-1.2.3-windows-arm64.zip', 'windows-arm64-portable'],
+      ['Coffer-1.2.3-macos-arm64.dmg', 'macos-arm64-dmg'],
+      ['Coffer-1.2.3-macos-x64.dmg', 'macos-x64-dmg'],
     ];
     for (const [name, key] of cases) assert.equal(classifyAsset(name)?.key, key, name);
   });
 
   it('keeps prerelease versions intact', () => {
-    const info = classifyAsset('7zip-GUI-2.0.0-rc.1-windows-x64.msi');
+    const info = classifyAsset('Coffer-2.0.0-rc.1-windows-x64.msi');
     assert.deepEqual(info, {
       version: '2.0.0-rc.1',
       os: 'windows',
@@ -42,12 +42,12 @@ describe('classifyAsset', () => {
 
   it('ignores signatures, checksums and unknown files', () => {
     for (const name of [
-      '7zip-GUI-1.2.3-linux-x64.deb.minisig',
+      'Coffer-1.2.3-linux-x64.deb.minisig',
       'SHA256SUMS.txt',
-      '7zip-GUI-1.2.3-linux-x86.deb',
-      '7zip-GUI-1.2.3-freebsd-x64.deb',
+      'Coffer-1.2.3-linux-x86.deb',
+      'Coffer-1.2.3-freebsd-x64.deb',
       'other-1.2.3-linux-x64.deb',
-      '7zip-GUI-1.2-linux-x64.deb',
+      'Coffer-1.2-linux-x64.deb',
     ])
       assert.equal(classifyAsset(name), null, name);
   });
@@ -87,12 +87,12 @@ describe('compareSemver', () => {
 
 const release = (tag, extra = {}) => ({
   tag_name: tag,
-  name: `7zip-GUI ${tag}`,
+  name: `Coffer ${tag}`,
   body: `Notes for ${tag}`,
   draft: false,
   prerelease: false,
   published_at: '2026-11-12T10:00:00Z',
-  html_url: `https://github.com/DamienReichhart/7zip-GUI/releases/tag/${tag}`,
+  html_url: `https://github.com/DamienReichhart/Coffer/releases/tag/${tag}`,
   assets: [],
   ...extra,
 });
@@ -111,30 +111,30 @@ describe('selectReleases', () => {
 const gh = (name, size = 100) => ({
   name,
   size,
-  browser_download_url: `https://github.com/DamienReichhart/7zip-GUI/releases/download/v1.2.3/${name}`,
+  browser_download_url: `https://github.com/DamienReichhart/Coffer/releases/download/v1.2.3/${name}`,
 });
 
 function sample(extra = {}) {
   return release('v1.2.3', {
     assets: [
-      gh('7zip-GUI-1.2.3-linux-x64.deb', 10),
-      gh('7zip-GUI-1.2.3-linux-x64.deb.minisig', 1),
-      gh('7zip-GUI-1.2.3-windows-x64.msi', 20),
-      gh('7zip-GUI-1.2.3-windows-x64.msi.minisig', 1),
-      gh('7zip-GUI-1.2.3-macos-arm64.dmg', 30),
+      gh('Coffer-1.2.3-linux-x64.deb', 10),
+      gh('Coffer-1.2.3-linux-x64.deb.minisig', 1),
+      gh('Coffer-1.2.3-windows-x64.msi', 20),
+      gh('Coffer-1.2.3-windows-x64.msi.minisig', 1),
+      gh('Coffer-1.2.3-macos-arm64.dmg', 30),
       gh('SHA256SUMS.txt', 1),
     ],
     ...extra,
   });
 }
 const sums = new Map([
-  ['7zip-GUI-1.2.3-linux-x64.deb', HEX('1')],
-  ['7zip-GUI-1.2.3-windows-x64.msi', HEX('2')],
-  ['7zip-GUI-1.2.3-macos-arm64.dmg', HEX('3')],
+  ['Coffer-1.2.3-linux-x64.deb', HEX('1')],
+  ['Coffer-1.2.3-windows-x64.msi', HEX('2')],
+  ['Coffer-1.2.3-macos-arm64.dmg', HEX('3')],
 ]);
 const signatures = new Map([
-  ['7zip-GUI-1.2.3-linux-x64.deb', 'untrusted comment: deb\nSIG'],
-  ['7zip-GUI-1.2.3-windows-x64.msi', 'untrusted comment: msi\nSIG'],
+  ['Coffer-1.2.3-linux-x64.deb', 'untrusted comment: deb\nSIG'],
+  ['Coffer-1.2.3-windows-x64.msi', 'untrusted comment: msi\nSIG'],
 ]);
 
 describe('buildReleaseData', () => {
@@ -143,9 +143,9 @@ describe('buildReleaseData', () => {
     assert.equal(data.version, '1.2.3');
     assert.equal(data.assets.length, 3);
     const deb = data.assets.find((a) => a.key === 'linux-x64-deb');
-    assert.equal(deb.url, `${ROOT}/downloads/v1.2.3/7zip-GUI-1.2.3-linux-x64.deb`);
-    assert.equal(deb.githubUrl, gh('7zip-GUI-1.2.3-linux-x64.deb').browser_download_url);
-    assert.equal(deb.signatureUrl, `${ROOT}/downloads/v1.2.3/7zip-GUI-1.2.3-linux-x64.deb.minisig`);
+    assert.equal(deb.url, `${ROOT}/downloads/v1.2.3/Coffer-1.2.3-linux-x64.deb`);
+    assert.equal(deb.githubUrl, gh('Coffer-1.2.3-linux-x64.deb').browser_download_url);
+    assert.equal(deb.signatureUrl, `${ROOT}/downloads/v1.2.3/Coffer-1.2.3-linux-x64.deb.minisig`);
     assert.equal(deb.sha256, HEX('1'));
     assert.equal(data.checksumsUrl, `${ROOT}/downloads/v1.2.3/SHA256SUMS.txt`);
   });
@@ -168,9 +168,9 @@ describe('buildManifest', () => {
     // The dmg has no signature, so it isn't offered.
     assert.deepEqual(Object.keys(manifest.assets).sort(), ['linux-x64-deb', 'windows-x64-msi']);
     assert.deepEqual(manifest.assets['windows-x64-msi'], {
-      name: '7zip-GUI-1.2.3-windows-x64.msi',
-      url: `${ROOT}/downloads/v1.2.3/7zip-GUI-1.2.3-windows-x64.msi`,
-      mirror: gh('7zip-GUI-1.2.3-windows-x64.msi').browser_download_url,
+      name: 'Coffer-1.2.3-windows-x64.msi',
+      url: `${ROOT}/downloads/v1.2.3/Coffer-1.2.3-windows-x64.msi`,
+      mirror: gh('Coffer-1.2.3-windows-x64.msi').browser_download_url,
       size: 20,
       sha256: HEX('2'),
       signature: 'untrusted comment: msi\nSIG',
@@ -188,7 +188,7 @@ describe('helpers', () => {
   it('builds anchors and roots', () => {
     assert.equal(changelogAnchor('1.2.3'), 'v1-2-3');
     assert.equal(changelogAnchor('2.0.0-rc.1'), 'v2-0-0-rc-1');
-    assert.equal(siteRoot('https://x.github.io/', '/7zip-GUI/'), 'https://x.github.io/7zip-GUI');
+    assert.equal(siteRoot('https://x.github.io/', '/Coffer/'), 'https://x.github.io/Coffer');
     assert.equal(siteRoot('https://example.com', '/'), 'https://example.com');
   });
 });

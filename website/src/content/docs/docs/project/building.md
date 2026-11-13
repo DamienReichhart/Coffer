@@ -1,9 +1,9 @@
 ---
 title: Building from source
-description: Build and run 7zip-GUI from its source code.
+description: Build and run Coffer from its source code.
 ---
 
-7zip-GUI is a Rust workspace; the website is an Astro project in `website/`.
+Coffer is a Rust workspace; the website is an Astro project in `website/`.
 
 ## Requirements
 
@@ -28,16 +28,16 @@ description: Build and run 7zip-GUI from its source code.
 ## Run
 
 ```sh
-git clone https://github.com/DamienReichhart/7zip-GUI.git
-cd 7zip-GUI
-cargo run -p sevenzip-gui
+git clone https://github.com/DamienReichhart/Coffer.git
+cd Coffer
+cargo run -p coffer
 ```
 
 A release build:
 
 ```sh
-cargo build --release -p sevenzip-gui
-./target/release/7zip-gui
+cargo build --release -p coffer
+./target/release/coffer
 ```
 
 ## Repository layout
@@ -77,7 +77,7 @@ Windows; dmg on macOS), as the release workflow does.
 The screenshots on this site are rendered by the app itself, headlessly, from demo data:
 
 ```sh
-cargo run --release -p sevenzip-gui --example screenshots -- website/src/assets/screenshots
+cargo run --release -p coffer --example screenshots -- website/src/assets/screenshots
 cd website
 npm ci
 npm run dev

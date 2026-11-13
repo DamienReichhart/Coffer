@@ -116,9 +116,9 @@ mod tests {
               "future_field": true,
               "assets": {{
                 "linux-x64-deb": {{
-                  "name": "7zip-GUI-{version}-linux-x64.deb",
-                  "url": "https://example.org/downloads/v{version}/7zip-GUI-{version}-linux-x64.deb",
-                  "mirror": "https://github.com/x/y/releases/download/v{version}/7zip-GUI-{version}-linux-x64.deb",
+                  "name": "Coffer-{version}-linux-x64.deb",
+                  "url": "https://example.org/downloads/v{version}/Coffer-{version}-linux-x64.deb",
+                  "mirror": "https://github.com/x/y/releases/download/v{version}/Coffer-{version}-linux-x64.deb",
                   "size": 1234,
                   "sha256": "{sha}",
                   "signature": "untrusted comment: x\nRUQ=\ntrusted comment: y\nAA=="

@@ -6,7 +6,7 @@ description: Extract all or part of an archive, where you want, the way you want
 import DocScreenshot from '@/components/DocScreenshot.astro';
 
 Click **Extract** in an open archive, choose **Extract archive** on the welcome screen, or run
-`7zip-gui --extract <archive>`. The extract dialog sets everything up:
+`coffer --extract <archive>`. The extract dialog sets everything up:
 
 <DocScreenshot name="extract" alt="The extract dialog" />
 
@@ -18,7 +18,7 @@ Click **Extract** in an open archive, choose **Extract archive** on the welcome 
 
 ## Destination
 
-By default 7zip-GUI extracts into a **new folder named after the archive**, next to it
+By default Coffer extracts into a **new folder named after the archive**, next to it
 (`photos.7z` → `photos/`), so an archive with many top-level files never spills into the folder it
 sits in. Choose any other folder with **Browse**. The default can be changed in
 [Settings](/docs/reference/settings/).

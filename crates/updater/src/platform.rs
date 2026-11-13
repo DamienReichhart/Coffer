@@ -137,9 +137,9 @@ pub fn marker_paths(exe: &Path) -> Vec<PathBuf> {
     if let Some(dir) = exe.parent() {
         // Windows (MSI, portable) and macOS (Contents/MacOS) keep it beside the binary.
         paths.push(dir.join("install-kind"));
-        // deb and rpm: /usr/bin/7zip-gui → /usr/lib/7zip-gui/install-kind.
+        // deb and rpm: /usr/bin/coffer → /usr/lib/coffer/install-kind.
         if let Some(prefix) = dir.parent() {
-            paths.push(prefix.join("lib").join("7zip-gui").join("install-kind"));
+            paths.push(prefix.join("lib").join("coffer").join("install-kind"));
         }
     }
     paths
@@ -167,9 +167,9 @@ mod tests {
 
     #[test]
     fn marker_locations() {
-        let paths = marker_paths(Path::new("/usr/bin/7zip-gui"));
+        let paths = marker_paths(Path::new("/usr/bin/coffer"));
         assert_eq!(paths[0], Path::new("/usr/bin/install-kind"));
-        assert_eq!(paths[1], Path::new("/usr/lib/7zip-gui/install-kind"));
+        assert_eq!(paths[1], Path::new("/usr/lib/coffer/install-kind"));
     }
 
     #[test]

@@ -1,9 +1,9 @@
 {
-  "name": "7zip-gui-website",
+  "name": "coffer-website",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "The 7zip-GUI website and documentation, published to GitHub Pages.",
+  "description": "The Coffer website and documentation, published to GitHub Pages.",
   "engines": {
     "node": ">=22.12"
   },
@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "test": "node --test \"scripts/**/*.test.mjs\" \"src/**/*.test.ts\"",
     "sync": "node scripts/sync-releases.mjs",
-    "screenshots": "cargo run --release --manifest-path ../Cargo.toml -p sevenzip-gui --example screenshots -- src/assets/screenshots",
+    "screenshots": "cargo run --release --manifest-path ../Cargo.toml -p coffer --example screenshots -- src/assets/screenshots",
     "brand": "node scripts/brand-images.mjs",
     "astro": "astro"
   },

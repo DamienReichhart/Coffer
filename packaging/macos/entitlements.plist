@@ -2,6 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- The hardened runtime is on; 7zip-GUI starts 7-Zip as a separate process and needs no exceptions. -->
+  <!-- The hardened runtime is on; Coffer starts 7-Zip as a separate process and needs no exceptions. -->
 </dict>
 </plist>

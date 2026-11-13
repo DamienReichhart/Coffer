@@ -2,8 +2,8 @@
 
 use std::path::{Path, PathBuf};
 
+use coffer_core::{ArchiveFormat, CompressionLevel, OverwriteMode};
 use serde::{Deserialize, Serialize};
-use sevenzip_core::{ArchiveFormat, CompressionLevel, OverwriteMode};
 
 use crate::theme::ThemeChoice;
 
@@ -138,7 +138,7 @@ impl Settings {
     }
 }
 
-/// Where 7zip-GUI keeps its files on each platform.
+/// Where Coffer keeps its files on each platform.
 pub mod paths {
     use std::path::PathBuf;
 
@@ -146,16 +146,16 @@ pub mod paths {
         directories::BaseDirs::new()
     }
 
-    /// `~/.config/7zip-gui`, `~/Library/Application Support/io.github.damienreichhart.SevenZipGui`
-    /// or `%APPDATA%\DamienReichhart\7zip-GUI\config`.
+    /// `~/.config/coffer`, `~/Library/Application Support/io.github.damienreichhart.Coffer`
+    /// or `%APPDATA%\DamienReichhart\Coffer\config`.
     pub fn config_dir() -> Option<PathBuf> {
         let base = base()?;
         Some(if cfg!(windows) {
-            base.config_dir().join("DamienReichhart").join("7zip-GUI").join("config")
+            base.config_dir().join("DamienReichhart").join("Coffer").join("config")
         } else if cfg!(target_os = "macos") {
-            base.config_dir().join("io.github.damienreichhart.SevenZipGui")
+            base.config_dir().join("io.github.damienreichhart.Coffer")
         } else {
-            base.config_dir().join("7zip-gui")
+            base.config_dir().join("coffer")
         })
     }
 
@@ -167,11 +167,11 @@ pub mod paths {
     pub fn data_dir() -> Option<PathBuf> {
         let base = base()?;
         Some(if cfg!(windows) {
-            base.data_local_dir().join("DamienReichhart").join("7zip-GUI").join("data")
+            base.data_local_dir().join("DamienReichhart").join("Coffer").join("data")
         } else if cfg!(target_os = "macos") {
-            base.data_local_dir().join("io.github.damienreichhart.SevenZipGui")
+            base.data_local_dir().join("io.github.damienreichhart.Coffer")
         } else {
-            base.data_local_dir().join("7zip-gui")
+            base.data_local_dir().join("coffer")
         })
     }
 

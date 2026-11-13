@@ -3,9 +3,9 @@ title: Drag and drop
 description: Drop archives to open them and files to compress them.
 ---
 
-Drop files from your file manager onto the 7zip-GUI window:
+Drop files from your file manager onto the Coffer window:
 
-| You drop | 7zip-GUI |
+| You drop | Coffer |
 | --- | --- |
 | One archive | Opens it in the archive view. |
 | Files or folders (not an archive) | Opens **Compress** with them added. |

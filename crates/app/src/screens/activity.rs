@@ -110,7 +110,7 @@ fn job_card(job: &Job) -> El<'_> {
         row![
             ui::icon_tile(job.spec.icon(), tone, 40.0),
             column![ui::strong(job.spec.title()), ui::small(job.spec.detail())].spacing(2).width(Length::Fill),
-            column![ui::badge(status_label, tone), ui::small(sevenzip_core::format::duration(job.elapsed()))]
+            column![ui::badge(status_label, tone), ui::small(coffer_core::format::duration(job.elapsed()))]
                 .spacing(4)
                 .align_x(Alignment::End),
             actions,

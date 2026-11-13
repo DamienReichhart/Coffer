@@ -32,10 +32,10 @@ shasum -a 256 --ignore-missing -c SHA256SUMS.txt
 <TabItem label="Windows">
 
 ```powershell
-Get-FileHash .\7zip-GUI-1.0.0-windows-x64.msi -Algorithm SHA256
+Get-FileHash .\Coffer-1.0.0-windows-x64.msi -Algorithm SHA256
 ```
 
-Compare the hash with the installer’s line in `SHA256SUMS.txt`. 7zip-GUI’s own
+Compare the hash with the installer’s line in `SHA256SUMS.txt`. Coffer’s own
 [Checksums](/docs/guides/checksums/) screen does the same.
 
 </TabItem>
@@ -51,7 +51,7 @@ in the repository at `packaging/keys/update.pub` and built into the app. With
 [minisign](https://jedisct1.github.io/minisign/):
 
 ```sh
-minisign -Vm 7zip-GUI-1.0.0-linux-x64.deb -p update.pub
+minisign -Vm Coffer-1.0.0-linux-x64.deb -p update.pub
 ```
 
 `Signature and comment signature verified` means the file was signed by the release key.
@@ -63,5 +63,5 @@ proving it was built by this repository’s release workflow from a specific com
 CLI:
 
 ```sh
-gh attestation verify 7zip-GUI-1.0.0-linux-x64.deb --repo DamienReichhart/7zip-GUI
+gh attestation verify Coffer-1.0.0-linux-x64.deb --repo DamienReichhart/Coffer
 ```

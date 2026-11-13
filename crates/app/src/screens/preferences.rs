@@ -2,9 +2,9 @@
 
 use std::path::PathBuf;
 
+use coffer_core::{ArchiveFormat, CompressionLevel, OverwriteMode};
 use iced::widget::{button, column, row, text};
 use iced::{Alignment, Task};
-use sevenzip_core::{ArchiveFormat, CompressionLevel, OverwriteMode};
 
 use crate::app::{App, Message, SevenState};
 use crate::icons::Icon;
@@ -152,7 +152,7 @@ pub fn view(app: &App) -> El<'_> {
     };
     let seven = ui::section(
         "7-Zip",
-        Some("7zip-GUI uses the 7-Zip installed on this computer. It is never bundled."),
+        Some("Coffer uses the 7-Zip installed on this computer. It is never bundled."),
         column![
             status,
             ui::field(
@@ -238,8 +238,8 @@ pub fn view(app: &App) -> El<'_> {
         State::HandedOver => "The installer is open.".to_owned(),
         State::Idle => format!("You have version {}.", crate::VERSION),
     };
-    let signing = if sevenzip_updater::PUBLIC_KEY.is_some() {
-        "Updates are downloaded from the website and installed only if their signature matches the 7zip-GUI release key."
+    let signing = if coffer_updater::PUBLIC_KEY.is_some() {
+        "Updates are downloaded from the website and installed only if their signature matches the Coffer release key."
     } else {
         "This build has no release key, so it points you to the website instead of installing updates itself."
     };

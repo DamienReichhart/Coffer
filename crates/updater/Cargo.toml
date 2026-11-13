@@ -1,6 +1,6 @@
 [package]
-name = "sevenzip-updater"
-description = "Checks for, downloads, verifies and installs 7zip-GUI updates."
+name = "coffer-updater"
+description = "Checks for, downloads, verifies and installs Coffer updates."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

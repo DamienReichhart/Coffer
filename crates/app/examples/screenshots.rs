@@ -1,7 +1,7 @@
 //! Renders the website's screenshots from the real views, headlessly.
 //!
 //! ```text
-//! cargo run --release -p sevenzip-gui --example screenshots -- website/src/assets/screenshots
+//! cargo run --release -p coffer --example screenshots -- website/src/assets/screenshots
 //! ```
 //!
 //! Writes `<out>/{light,dark}/<scene>.png` at 1280×800 logical pixels and a
@@ -11,8 +11,8 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
-use sevenzip_gui::demo::{self, Scene};
-use sevenzip_gui::{App, fonts};
+use coffer::demo::{self, Scene};
+use coffer::{App, fonts};
 
 const SIZE: iced::Size = iced::Size::new(1280.0, 800.0);
 const SCALE: f32 = 2.0;
@@ -48,7 +48,7 @@ fn render(scene: Scene, dark: bool, path: &Path) -> Result<(), Box<dyn std::erro
         .font(fonts::REGULAR_BYTES)
         .font(fonts::MEDIUM_BYTES)
         .font(fonts::SEMIBOLD_BYTES);
-    let theme = sevenzip_gui::theme::theme(dark);
+    let theme = coffer::theme::theme(dark);
     let shot = iced_test::screenshot(&program, &theme, SIZE, SCALE, Duration::from_millis(250));
     let file = std::io::BufWriter::new(std::fs::File::create(path)?);
     let mut encoder = png::Encoder::new(file, shot.size.width, shot.size.height);

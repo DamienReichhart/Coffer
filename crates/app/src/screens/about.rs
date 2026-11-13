@@ -12,10 +12,9 @@ const LOGO: &[u8] = include_bytes!("../../../../assets/brand/icon.svg");
 
 pub fn view(app: &App) -> El<'_> {
     let seven = app.seven().map_or_else(|| "not found".to_owned(), |s| format!("{} ({})", s.version, s.path.display()));
-    let target = sevenzip_updater::Target::current()
+    let target = coffer_updater::Target::current()
         .map_or_else(|| std::env::consts::OS.to_owned(), |t| format!("{}-{}", t.os, t.arch));
-    let kind =
-        sevenzip_updater::InstallKind::detect().map_or_else(|| "development build".to_owned(), |k| k.to_string());
+    let kind = coffer_updater::InstallKind::detect().map_or_else(|| "development build".to_owned(), |k| k.to_string());
 
     let hero = row![
         svg(svg::Handle::from_memory(LOGO)).width(84).height(84),
@@ -48,7 +47,7 @@ pub fn view(app: &App) -> El<'_> {
         "This installation",
         None,
         ui::properties(vec![
-            ("7zip-GUI", crate::VERSION.to_owned()),
+            ("Coffer", crate::VERSION.to_owned()),
             ("7-Zip", seven),
             ("Settings", crate::settings::paths::settings_file().map(|p| p.display().to_string()).unwrap_or_default()),
         ]),
@@ -58,9 +57,9 @@ pub fn view(app: &App) -> El<'_> {
         "Independent and open source",
         None,
         column![
-            ui::muted("7zip-GUI is free software under the MIT licence. It is an independent project: it is not affiliated with, endorsed by or sponsored by 7-Zip or Igor Pavlov. 7-Zip is not included — it runs the copy you installed, under 7-Zip's own licence."),
+            ui::muted("Coffer is free software under the MIT licence. It is an independent project: it is not affiliated with, endorsed by or sponsored by 7-Zip or Igor Pavlov. 7-Zip is not included — it runs the copy you installed, under 7-Zip's own licence."),
             ui::muted("Built with iced (MIT), the Inter typeface (SIL Open Font License 1.1) and Lucide icons (ISC)."),
-            ui::muted("No telemetry: the only request 7zip-GUI makes on its own is the update check, which you can turn off."),
+            ui::muted("No telemetry: the only request Coffer makes on its own is the update check, which you can turn off."),
         ]
         .spacing(10)
         .into(),

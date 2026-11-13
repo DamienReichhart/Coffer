@@ -43,7 +43,7 @@ jobs:
         env:
           RUSTDOCFLAGS: -D warnings
 
-  # Every platform 7zip-GUI ships for, against a real 7-Zip, so code behind
+  # Every platform Coffer ships for, against a real 7-Zip, so code behind
   # cfg(windows) / cfg(target_os = "macos") is compiled, linted and tested.
   test:
     name: test (${{ matrix.name }})
@@ -131,21 +131,21 @@ jobs:
           key: package-smoke
       - name: Install the packaging tools
         run: scripts/ci/install-linux-packaging-tools.sh x86_64
-      - run: cargo build --release --locked --target x86_64-unknown-linux-gnu -p sevenzip-gui
+      - run: cargo build --release --locked --target x86_64-unknown-linux-gnu -p coffer
       - run: cargo xtask package --target x86_64-unknown-linux-gnu --out dist
       - name: Install the deb and run it
         run: |
           sudo apt-get update
           sudo apt-get install -y ./dist/*.deb
-          7zip-gui --version
-          test "$(cat /usr/lib/7zip-gui/install-kind)" = deb
-          desktop-file-validate /usr/share/applications/io.github.damienreichhart.SevenZipGui.desktop
-          appstreamcli validate --no-net --explain /usr/share/metainfo/io.github.damienreichhart.SevenZipGui.metainfo.xml || true
-          sudo apt-get remove -y 7zip-gui
+          coffer --version
+          test "$(cat /usr/lib/coffer/install-kind)" = deb
+          desktop-file-validate /usr/share/applications/io.github.damienreichhart.Coffer.desktop
+          appstreamcli validate --no-net --explain /usr/share/metainfo/io.github.damienreichhart.Coffer.metainfo.xml || true
+          sudo apt-get remove -y coffer
       - name: Inspect the rpm and run the AppImage
         run: |
           rpm -qip dist/*.rpm
-          rpm -qlp dist/*.rpm | grep -q /usr/lib/7zip-gui/install-kind
+          rpm -qlp dist/*.rpm | grep -q /usr/lib/coffer/install-kind
           for appimage in dist/*.AppImage; do
             chmod +x "$appimage"
             "$appimage" --version # APPIMAGE_EXTRACT_AND_RUN is set by the tools script

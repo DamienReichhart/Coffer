@@ -25,7 +25,7 @@ const KINDS = /** @type {const} */ ({
 const SEMVER =
   '(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?';
 const ASSET = new RegExp(
-  `^7zip-GUI-(${SEMVER})-(linux|windows|macos)-(x64|arm64)\\.(deb|rpm|AppImage|msi|zip|dmg)$`,
+  `^Coffer-(${SEMVER})-(linux|windows|macos)-(x64|arm64)\\.(deb|rpm|AppImage|msi|zip|dmg)$`,
 );
 
 /**
@@ -36,7 +36,7 @@ const ASSET = new RegExp(
  */
 
 /**
- * Reads an installer's file name, e.g. `7zip-GUI-1.2.3-linux-x64.deb`.
+ * Reads an installer's file name, e.g. `Coffer-1.2.3-linux-x64.deb`.
  * Signatures, checksums and anything else return `null`.
  *
  * @param {string} name
@@ -150,8 +150,8 @@ export const changelogAnchor = (/** @type {string} */ version) =>
   `v${version.replace(/[^0-9A-Za-z]+/g, '-')}`;
 
 /**
- * Joins the site's origin and base path: (`https://x.github.io`, `/7zip-GUI/`) →
- * `https://x.github.io/7zip-GUI`.
+ * Joins the site's origin and base path: (`https://x.github.io`, `/Coffer/`) →
+ * `https://x.github.io/Coffer`.
  *
  * @param {string} origin
  * @param {string} basePath
@@ -209,7 +209,7 @@ export function buildReleaseData(release, { root, hosted, sums, signatures }) {
   return {
     version,
     tag: release.tag_name,
-    title: release.name || `7zip-GUI ${release.tag_name}`,
+    title: release.name || `Coffer ${release.tag_name}`,
     date: release.published_at ?? release.created_at ?? null,
     prerelease: release.prerelease,
     htmlUrl: release.html_url,

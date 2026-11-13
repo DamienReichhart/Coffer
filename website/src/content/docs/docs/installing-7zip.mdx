@@ -1,11 +1,11 @@
 ---
 title: Installing 7-Zip
-description: 7zip-GUI uses the 7-Zip installed on your computer. Here is how to install it on every platform.
+description: Coffer uses the 7-Zip installed on your computer. Here is how to install it on every platform.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-7zip-GUI never bundles 7-Zip: it drives the 7-Zip command-line program installed on your
+Coffer never bundles 7-Zip: it drives the 7-Zip command-line program installed on your
 computer. That keeps 7-Zip coming from its official source, under its own licence, and lets you
 update it whenever you like. Any recent version works; **7-Zip 21 or newer** is recommended.
 
@@ -25,7 +25,7 @@ choco install 7zip
 scoop install 7zip
 ```
 
-Or download the installer from [7-zip.org](https://www.7-zip.org/). 7zip-GUI finds 7-Zip in
+Or download the installer from [7-zip.org](https://www.7-zip.org/). Coffer finds 7-Zip in
 `C:\Program Files\7-Zip`, through the registry, on your `PATH` and in Scoop’s shims.
 
 </TabItem>
@@ -40,7 +40,7 @@ brew install sevenzip
 This installs `7zz`, 7-Zip’s own build for macOS, on Apple silicon and Intel. The older `p7zip`
 formula (`7z`) also works but is no longer maintained.
 
-7zip-GUI looks in `/opt/homebrew/bin`, `/usr/local/bin` and MacPorts’ `/opt/local/bin`, so it
+Coffer looks in `/opt/homebrew/bin`, `/usr/local/bin` and MacPorts’ `/opt/local/bin`, so it
 finds Homebrew’s copy even when the app is started from Finder.
 
 </TabItem>
@@ -68,7 +68,7 @@ open, install your distribution’s non-free RAR plugin (for example `p7zip-rar`
 </TabItem>
 </Tabs>
 
-## How 7zip-GUI finds 7-Zip
+## How Coffer finds 7-Zip
 
 In this order:
 
@@ -82,5 +82,5 @@ In this order:
 ## A portable or custom 7-Zip
 
 Point **Settings → 7-Zip → Executable** at any `7zz`, `7z` or `7za` — for example 7-Zip’s
-standalone console build from 7-zip.org, unpacked into your home folder. 7zip-GUI checks that it
+standalone console build from 7-zip.org, unpacked into your home folder. Coffer checks that it
 runs and shows its version before using it.

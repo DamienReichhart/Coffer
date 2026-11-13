@@ -25,12 +25,12 @@ mkdir -p apt
 apt-ftparchive packages downloads > apt/Packages
 gzip -9 --keep --force apt/Packages
 apt-ftparchive \
-  -o APT::FTPArchive::Release::Origin="7zip-GUI" \
-  -o APT::FTPArchive::Release::Label="7zip-GUI" \
+  -o APT::FTPArchive::Release::Origin="Coffer" \
+  -o APT::FTPArchive::Release::Label="Coffer" \
   -o APT::FTPArchive::Release::Suite="stable" \
   -o APT::FTPArchive::Release::Codename="stable" \
   -o APT::FTPArchive::Release::Architectures="amd64 arm64" \
-  -o APT::FTPArchive::Release::Description="7zip-GUI packages" \
+  -o APT::FTPArchive::Release::Description="Coffer packages" \
   release apt > apt/Release
 gpg --batch --yes --armor --detach-sign --output apt/Release.gpg apt/Release
 gpg --batch --yes --clearsign --output apt/InRelease apt/Release

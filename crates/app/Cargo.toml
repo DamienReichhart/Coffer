@@ -1,5 +1,5 @@
 [package]
-name = "sevenzip-gui"
+name = "coffer"
 description = "A modern, native desktop interface for 7-Zip."
 version.workspace = true
 edition.workspace = true
@@ -9,15 +9,15 @@ authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
 publish = false
-default-run = "7zip-gui"
+default-run = "coffer"
 
 [[bin]]
-name = "7zip-gui"
+name = "coffer"
 path = "src/main.rs"
 
 [dependencies]
-sevenzip-core.workspace = true
-sevenzip-updater.workspace = true
+coffer-core.workspace = true
+coffer-updater.workspace = true
 
 clap.workspace = true
 directories.workspace = true

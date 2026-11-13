@@ -93,7 +93,7 @@ jobs:
           PASSPHRASE: ${{ secrets.PACKAGES_GPG_PASSPHRASE }}
           SITE: ${{ steps.pages.outputs.base_url }}
         run: |
-          if [ -z "$KEY" ] || [ ! -f packaging/linux/7zip-gui.asc ]; then
+          if [ -z "$KEY" ] || [ ! -f packaging/linux/coffer.asc ]; then
             echo "::notice::No package signing key: the APT and RPM repositories are not published (scripts/setup-signing.sh)."
             exit 0
           fi

@@ -29,13 +29,13 @@ Jobs run at the same time; 7-Zip itself uses several CPU threads for each.
 A finished job shows whether it succeeded, how long it took, and actions such as **Show in folder**.
 A failed job shows 7-Zip’s message — *Wrong password*, *Not enough space on disk*, *Can not open the
 file as archive* — and **View log** shows everything 7-Zip printed, which is what to attach when
-you [report a problem](https://github.com/DamienReichhart/7zip-GUI/issues).
+you [report a problem](https://github.com/DamienReichhart/Coffer/issues).
 
 **Clear finished** empties the list. A notification appears when a job ends while you are elsewhere
 in the app.
 
 ## Exit codes
 
-7zip-GUI reads 7-Zip’s exit code: 0 is success, 1 is a *warning* (for example a file that was locked
+Coffer reads 7-Zip’s exit code: 0 is success, 1 is a *warning* (for example a file that was locked
 and skipped — the job is marked as completed with warnings), 2 is a fatal error, 7 a command-line
 error, 8 not enough memory, and 255 a job you cancelled.

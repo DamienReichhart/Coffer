@@ -15,8 +15,8 @@ import { NAME, REPO_URL, DESCRIPTION } from './src/lib/site.ts';
  * local builds and pull requests — it builds for the project site.
  */
 const site = process.env.SITE_URL || 'https://damienreichhart.github.io';
-const base = process.env.SITE_URL ? process.env.BASE_PATH || '/' : '/7zip-GUI';
-/** The base without a trailing slash, for building paths: `/7zip-GUI` or ``. */
+const base = process.env.SITE_URL ? process.env.BASE_PATH || '/' : '/Coffer';
+/** The base without a trailing slash, for building paths: `/Coffer` or ``. */
 const root = base.replace(/\/$/, '');
 
 export default defineConfig({

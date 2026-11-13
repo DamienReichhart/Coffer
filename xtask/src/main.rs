@@ -23,7 +23,7 @@ use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "xtask", about = "7zip-GUI release tooling")]
+#[command(name = "xtask", about = "Coffer release tooling")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -54,7 +54,7 @@ enum Command {
         /// Output folder.
         #[arg(long, default_value = "dist")]
         out: PathBuf,
-        /// The binary; defaults to `target/<target>/release/7zip-gui[.exe]`.
+        /// The binary; defaults to `target/<target>/release/coffer[.exe]`.
         #[arg(long)]
         binary: Option<PathBuf>,
     },

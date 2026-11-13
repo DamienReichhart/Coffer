@@ -1,6 +1,6 @@
 //! `cargo xtask package`: turns a release binary into installers named after
 //! the release contract (`docs/ARCHITECTURE.md`):
-//! `7zip-GUI-<version>-<os>-<arch>.<ext>`.
+//! `Coffer-<version>-<os>-<arch>.<ext>`.
 //!
 //! | Target OS | Formats | Tools |
 //! | --- | --- | --- |
@@ -17,13 +17,13 @@ use anyhow::{Context, Result, bail, ensure};
 
 use crate::{run as exec, workspace_version};
 
-pub const PRODUCT: &str = "7zip-GUI";
-pub const BINARY: &str = "7zip-gui";
-pub const APP_ID: &str = "io.github.damienreichhart.SevenZipGui";
+pub const PRODUCT: &str = "Coffer";
+pub const BINARY: &str = "coffer";
+pub const APP_ID: &str = "io.github.damienreichhart.Coffer";
 const SUMMARY: &str = "A modern desktop interface for 7-Zip";
-const DESCRIPTION: &str = "7zip-GUI opens, creates, extracts, tests and checksums archives with the 7-Zip \
+const DESCRIPTION: &str = "Coffer opens, creates, extracts, tests and checksums archives with the 7-Zip \
 command-line program installed on the computer. 7-Zip itself is not included.";
-const HOMEPAGE: &str = "https://damienreichhart.github.io/7zip-GUI/";
+const HOMEPAGE: &str = "https://damienreichhart.github.io/Coffer/";
 const MAINTAINER: &str = "Damien Reichhart <damienreichhart@users.noreply.github.com>";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -110,7 +110,7 @@ pub fn run(root: &Path, triple: &str, formats: &[String], out: &Path, binary: Op
     let binary = binary.unwrap_or_else(|| root.join("target").join(triple).join("release").join(&exe));
     ensure!(
         binary.is_file(),
-        "{} does not exist: build it first with `cargo build --release --locked --target {triple} -p sevenzip-gui`",
+        "{} does not exist: build it first with `cargo build --release --locked --target {triple} -p coffer`",
         binary.display()
     );
     let formats: Vec<String> = if formats.is_empty() {
@@ -173,7 +173,7 @@ fn linux_tree(ctx: &Ctx<'_>, root: &Path, kind: &str) -> Result<()> {
     write(
         &usr.join("share/doc").join(BINARY).join("copyright"),
         format!(
-            "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: {PRODUCT}\nSource: https://github.com/DamienReichhart/7zip-GUI\n\nFiles: *\nCopyright: Damien Reichhart\nLicense: MIT\n{}\n",
+            "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: {PRODUCT}\nSource: https://github.com/DamienReichhart/Coffer\n\nFiles: *\nCopyright: Damien Reichhart\nLicense: MIT\n{}\n",
             license
                 .lines()
                 .map(|l| if l.is_empty() { " .".to_owned() } else { format!(" {l}") })
@@ -315,7 +315,7 @@ fn msi(ctx: &Ctx<'_>) -> Result<PathBuf> {
             .arg(format!("Packaging={}", ctx.root.join("packaging/windows").display()))
             .arg("-o")
             .arg(&out)
-            .arg(ctx.root.join("packaging/windows/7zip-gui.wxs")),
+            .arg(ctx.root.join("packaging/windows/coffer.wxs")),
     )?;
     Ok(out)
 }
@@ -335,7 +335,7 @@ fn portable(ctx: &Ctx<'_>) -> Result<PathBuf> {
     zip.start_file(format!("{folder}/README.txt"), options)?;
     zip.write_all(
         format!(
-            "{PRODUCT} {} — portable edition\r\n\r\nRun {BINARY}.exe; nothing is installed. Settings live in %APPDATA%\\DamienReichhart\\7zip-GUI.\r\n\
+            "{PRODUCT} {} — portable edition\r\n\r\nRun {BINARY}.exe; nothing is installed. Settings live in %APPDATA%\\DamienReichhart\\Coffer.\r\n\
              7-Zip must be installed separately: winget install --id 7zip.7zip -e\r\n\r\nUpdates replace {BINARY}.exe in place.\r\n{HOMEPAGE}\r\n",
             ctx.version
         )

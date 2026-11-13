@@ -1,9 +1,9 @@
 ---
 title: Automatic updates
-description: How 7zip-GUI finds, verifies and installs new versions — and how to turn it off.
+description: How Coffer finds, verifies and installs new versions — and how to turn it off.
 ---
 
-7zip-GUI keeps itself up to date. Every step is designed so that a compromised download can’t be
+Coffer keeps itself up to date. Every step is designed so that a compromised download can’t be
 installed.
 
 ## How it works
@@ -34,7 +34,7 @@ The app knows how it was installed from a small marker that each package install
 build without one (one you compiled yourself) still tells you about new versions but opens the
 [download page](/download/) instead of installing.
 
-If you installed from the APT or DNF repository, your package manager updates 7zip-GUI with the rest
+If you installed from the APT or DNF repository, your package manager updates Coffer with the rest
 of your system as well; both ways work.
 
 ## Turning it off
@@ -46,10 +46,10 @@ Administrators can also block `damienreichhart.github.io` — the app works full
 
 ## What the check reveals
 
-Only what any HTTPS request does: your IP address and that a 7zip-GUI app asked for the latest
+Only what any HTTPS request does: your IP address and that a Coffer app asked for the latest
 version. No identifier, no usage data, nothing about your files. See [Privacy](/privacy/).
 
 ## Which versions are offered
 
 Only stable releases. The website keeps the last five releases; older ones remain on
-[GitHub Releases](https://github.com/DamienReichhart/7zip-GUI/releases).
+[GitHub Releases](https://github.com/DamienReichhart/Coffer/releases).

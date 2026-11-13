@@ -10,7 +10,7 @@
 #      installs nothing that this key didn't sign. The secret half becomes the
 #      UPDATE_SIGNING_KEY and UPDATE_SIGNING_PASSWORD repository secrets.
 #   2. The package-repository key (GPG, for APT and RPM). The public half goes
-#      to packaging/linux/7zip-gui.asc; the secret half becomes the
+#      to packaging/linux/coffer.asc; the secret half becomes the
 #      PACKAGES_GPG_PRIVATE_KEY and PACKAGES_GPG_PASSPHRASE secrets.
 #
 # Secrets only travel from this machine to GitHub; the temporary copies are
@@ -45,17 +45,17 @@ else
   echo "    UPDATE_SIGNING_KEY and UPDATE_SIGNING_PASSWORD are set."
 fi
 
-if [ -f packaging/linux/7zip-gui.asc ]; then
-  echo "packaging/linux/7zip-gui.asc already exists: keeping the current repository key."
+if [ -f packaging/linux/coffer.asc ]; then
+  echo "packaging/linux/coffer.asc already exists: keeping the current repository key."
 else
   echo "==> Creating the package-repository key"
   export GNUPGHOME="$workdir/gnupg"
   install -d -m 700 "$GNUPGHOME"
   passphrase="$(random)"
   gpg --batch --pinentry-mode loopback --passphrase "$passphrase" \
-    --quick-gen-key "7zip-GUI packages <damienreichhart@users.noreply.github.com>" rsa4096 sign 5y
+    --quick-gen-key "Coffer packages <damienreichhart@users.noreply.github.com>" rsa4096 sign 5y
   fingerprint="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ { print $10; exit }')"
-  gpg --armor --export "$fingerprint" > packaging/linux/7zip-gui.asc
+  gpg --armor --export "$fingerprint" > packaging/linux/coffer.asc
   gpg --batch --pinentry-mode loopback --passphrase "$passphrase" --armor --export-secret-keys "$fingerprint" > "$workdir/packages.asc"
   gh secret set PACKAGES_GPG_PRIVATE_KEY < "$workdir/packages.asc"
   printf '%s' "$passphrase" | gh secret set PACKAGES_GPG_PASSPHRASE
@@ -64,4 +64,4 @@ fi
 
 echo
 echo "Done. Commit the public keys:"
-echo "  git add packaging/keys/update.pub packaging/linux/7zip-gui.asc && git commit -m 'Add the release public keys'"
+echo "  git add packaging/keys/update.pub packaging/linux/coffer.asc && git commit -m 'Add the release public keys'"

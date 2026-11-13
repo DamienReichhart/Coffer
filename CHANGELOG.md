@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to 7zip-GUI are documented here. The format follows
+All notable changes to Coffer are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -25,5 +25,5 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 - Automatic updates from the website: every installer is checked against its SHA-256 and a minisign signature before it runs.
 - Installers for Windows (MSI and portable, x64 and ARM64), macOS (Apple silicon and Intel) and Linux (deb, rpm and AppImage, x64 and ARM64).
 
-[Unreleased]: https://github.com/DamienReichhart/7zip-GUI/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/DamienReichhart/7zip-GUI/releases/tag/v0.1.0
+[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/DamienReichhart/Coffer/releases/tag/v0.1.0

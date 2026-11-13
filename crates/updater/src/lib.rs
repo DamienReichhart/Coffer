@@ -1,4 +1,4 @@
-//! Automatic updates for 7zip-GUI.
+//! Automatic updates for Coffer.
 //!
 //! 1. [`check`] fetches the update manifest the website publishes
 //!    (`updates/latest.json`) and decides whether it describes a newer version
@@ -30,13 +30,13 @@ mod key {
 /// The minisign public key releases are signed with, when this build has one.
 pub const PUBLIC_KEY: Option<&str> = key::PUBLIC_KEY;
 
-/// Where the website publishes the manifest. `SEVENZIP_GUI_UPDATE_URL`
+/// Where the website publishes the manifest. `COFFER_UPDATE_URL`
 /// overrides it, for testing against a local server.
-pub const DEFAULT_MANIFEST_URL: &str = "https://damienreichhart.github.io/7zip-GUI/updates/latest.json";
+pub const DEFAULT_MANIFEST_URL: &str = "https://damienreichhart.github.io/Coffer/updates/latest.json";
 
 /// The manifest URL to use.
 pub fn manifest_url() -> String {
-    std::env::var("SEVENZIP_GUI_UPDATE_URL").unwrap_or_else(|_| DEFAULT_MANIFEST_URL.to_owned())
+    std::env::var("COFFER_UPDATE_URL").unwrap_or_else(|_| DEFAULT_MANIFEST_URL.to_owned())
 }
 
 /// Errors of the update process.
@@ -48,7 +48,7 @@ pub enum Error {
     Manifest(String),
     #[error("the download is corrupt: {0}")]
     Integrity(String),
-    #[error("the update is not signed by the 7zip-GUI release key")]
+    #[error("the update is not signed by the Coffer release key")]
     Signature,
     #[error("this build has no update signing key, so it can't install updates")]
     NoPublicKey,
@@ -80,7 +80,7 @@ pub fn agent() -> ureq::Agent {
     let tls = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::RootCerts::PlatformVerifier).build();
     ureq::Agent::config_builder()
         .tls_config(tls)
-        .user_agent(concat!("7zip-GUI/", env!("CARGO_PKG_VERSION"), " (+https://github.com/DamienReichhart/7zip-GUI)"))
+        .user_agent(concat!("Coffer/", env!("CARGO_PKG_VERSION"), " (+https://github.com/DamienReichhart/Coffer)"))
         .timeout_connect(Some(Duration::from_secs(15)))
         // Bodies are installers of tens of megabytes on slow links.
         .timeout_recv_body(Some(Duration::from_mins(30)))

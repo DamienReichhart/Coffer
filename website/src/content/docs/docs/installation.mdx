@@ -1,12 +1,12 @@
 ---
 title: Installation
-description: Install 7zip-GUI on Windows, macOS or Linux, on x64 and ARM64.
+description: Install Coffer on Windows, macOS or Linux, on x64 and ARM64.
 ---
 
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
 Download the file for your platform from the [download page](/download/). Every release has
-installers for **x64** and **ARM64** on all three platforms. 7zip-GUI also needs **7-Zip** itself —
+installers for **x64** and **ARM64** on all three platforms. Coffer also needs **7-Zip** itself —
 see [Installing 7-Zip](/docs/installing-7zip/); the app tells you if it can’t find it.
 
 <Tabs syncKey="os">
@@ -14,16 +14,16 @@ see [Installing 7-Zip](/docs/installing-7zip/); the app tells you if it can’t 
 
 Windows 10 and 11 are supported, on x64 and ARM64.
 
-**Installer (.msi) — recommended.** Double-click `7zip-GUI-<version>-windows-<arch>.msi` and follow
+**Installer (.msi) — recommended.** Double-click `Coffer-<version>-windows-<arch>.msi` and follow
 the steps. The app is added to the Start menu, can be removed from *Settings → Apps*, and updates
 itself in place. Administrators can deploy it silently:
 
 ```powershell
-msiexec /i 7zip-GUI-1.0.0-windows-x64.msi /qn
+msiexec /i Coffer-1.0.0-windows-x64.msi /qn
 ```
 
 **Portable (.zip).** Unzip anywhere — a USB stick, your Downloads folder — and run
-`7zip-gui.exe`. Nothing is installed; when an update is available the app replaces its own
+`coffer.exe`. Nothing is installed; when an update is available the app replaces its own
 executable.
 
 :::note[SmartScreen]
@@ -39,18 +39,18 @@ chip named “Apple M…” is Apple silicon.
 
 <Steps>
 
-1. Open `7zip-GUI-<version>-macos-<arch>.dmg`.
-2. Drag **7zip-GUI** onto **Applications**.
+1. Open `Coffer-<version>-macos-<arch>.dmg`.
+2. Drag **Coffer** onto **Applications**.
 3. Open it from Applications or Launchpad.
 
 </Steps>
 
-:::caution[“7zip-GUI is damaged” or “unidentified developer”]
+:::caution[“Coffer is damaged” or “unidentified developer”]
 Builds that are not notarized by Apple are blocked by Gatekeeper the first time. After
 [verifying the download](/docs/reference/verifying/), remove the quarantine flag once:
 
 ```sh
-xattr -dr com.apple.quarantine /Applications/7zip-GUI.app
+xattr -dr com.apple.quarantine /Applications/Coffer.app
 ```
 
 or Control-click the app, choose **Open**, then **Open** again. Releases signed and notarized with
@@ -65,7 +65,7 @@ x64 and ARM64. Pick the format your distribution uses:
 **Debian, Ubuntu, Linux Mint, Pop!\_OS (.deb)**
 
 ```sh
-sudo apt install ./7zip-GUI-1.0.0-linux-x64.deb
+sudo apt install ./Coffer-1.0.0-linux-x64.deb
 ```
 
 `apt` also installs 7-Zip if your distribution packages it.
@@ -73,32 +73,32 @@ sudo apt install ./7zip-GUI-1.0.0-linux-x64.deb
 **Fedora, RHEL, openSUSE (.rpm)**
 
 ```sh
-sudo dnf install ./7zip-GUI-1.0.0-linux-x64.rpm
+sudo dnf install ./Coffer-1.0.0-linux-x64.rpm
 # or
-sudo zypper install ./7zip-GUI-1.0.0-linux-x64.rpm
+sudo zypper install ./Coffer-1.0.0-linux-x64.rpm
 ```
 
 **Any distribution (AppImage)**
 
 ```sh
-chmod +x 7zip-GUI-1.0.0-linux-x64.AppImage
-./7zip-GUI-1.0.0-linux-x64.AppImage
+chmod +x Coffer-1.0.0-linux-x64.AppImage
+./Coffer-1.0.0-linux-x64.AppImage
 ```
 
 If your system lacks FUSE 2, run it with `--appimage-extract-and-run`, or install `libfuse2`.
 
 **Package repositories.** When the download page lists APT and DNF repositories, adding one keeps
-7zip-GUI updated with the rest of your system.
+Coffer updated with the rest of your system.
 
 </TabItem>
 </Tabs>
 
 ## Uninstalling
 
-- **Windows:** *Settings → Apps → Installed apps → 7zip-GUI → Uninstall* (MSI), or delete the folder
+- **Windows:** *Settings → Apps → Installed apps → Coffer → Uninstall* (MSI), or delete the folder
   (portable).
-- **macOS:** move `7zip-GUI.app` from Applications to the Bin.
-- **Linux:** `sudo apt remove 7zip-gui`, `sudo dnf remove 7zip-gui`, or delete the AppImage.
+- **macOS:** move `Coffer.app` from Applications to the Bin.
+- **Linux:** `sudo apt remove coffer`, `sudo dnf remove coffer`, or delete the AppImage.
 
 Your settings are kept; see [Settings](/docs/reference/settings/#where-settings-are-stored) to remove
-them too. Uninstalling 7zip-GUI never touches 7-Zip.
+them too. Uninstalling Coffer never touches 7-Zip.

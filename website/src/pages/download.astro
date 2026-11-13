@@ -12,7 +12,7 @@ import { latest, previous, recommended } from '@/lib/releases';
 import { KEEP_VERSIONS, NAME, RELEASES_URL } from '@/lib/site';
 
 const root = new URL(import.meta.env.BASE_URL, Astro.site).href.replace(/\/$/, '');
-const example = latest?.assets[0]?.name ?? `7zip-GUI-1.0.0-linux-x64.deb`;
+const example = latest?.assets[0]?.name ?? `Coffer-1.0.0-linux-x64.deb`;
 ---
 
 <SiteLayout
@@ -69,7 +69,7 @@ const example = latest?.assets[0]?.name ?? `7zip-GUI-1.0.0-linux-x64.deb`;
       <h2 id="formats-title">Which file do I need?</h2>
       <dl class="formats">
         <div><dt>Windows · .msi</dt><dd>The installer. Adds a Start menu entry and updates itself in place.</dd></div>
-        <div><dt>Windows · .zip</dt><dd>Portable: unzip anywhere and run <code>7zip-gui.exe</code>. Replaces itself when updating.</dd></div>
+        <div><dt>Windows · .zip</dt><dd>Portable: unzip anywhere and run <code>coffer.exe</code>. Replaces itself when updating.</dd></div>
         <div><dt>macOS · .dmg</dt><dd>Drag the app into Applications. Apple silicon (arm64) or Intel (x64).</dd></div>
         <div><dt>Linux · .deb / .rpm</dt><dd>For apt or dnf/zypper based distributions; updates through your package manager.</dd></div>
         <div><dt>Linux · AppImage</dt><dd>One file that runs on most distributions. Make it executable and run it.</dd></div>

@@ -12,4 +12,4 @@ body:
   - type: textarea
     id: idea
     attributes:
-      label: How could 7zip-GUI help?
+      label: How could Coffer help?

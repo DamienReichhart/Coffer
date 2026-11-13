@@ -3,15 +3,15 @@ title: FAQ
 description: Short answers to common questions.
 ---
 
-## Is 7zip-GUI made by the 7-Zip team?
+## Is Coffer made by the 7-Zip team?
 
 No. It is an independent open-source project, not affiliated with or endorsed by 7-Zip or Igor
 Pavlov.
 
 ## Why do I have to install 7-Zip separately?
 
-7zip-GUI is a front end: it runs the real 7-Zip on your computer. Not bundling it means 7-Zip comes
-from its official source, you update it independently, and 7zip-GUI never redistributes someone
+Coffer is a front end: it runs the real 7-Zip on your computer. Not bundling it means 7-Zip comes
+from its official source, you update it independently, and Coffer never redistributes someone
 else’s software. It is one command on every platform — see [Installing 7-Zip](/docs/installing-7zip/).
 
 ## Is it free? Is there telemetry?
@@ -40,10 +40,10 @@ software. Use ZIP to share, 7z to store.
 
 ## Can I use it on a server or in scripts?
 
-7zip-GUI is a desktop app. For scripts, use 7-Zip’s command line directly — 7zip-GUI’s
+Coffer is a desktop app. For scripts, use 7-Zip’s command line directly — Coffer’s
 [Activity log](/docs/guides/activity/) shows the exact command each job ran, which is a handy
 starting point.
 
 ## How do I report a bug or request a feature?
 
-Open an issue on [GitHub](https://github.com/DamienReichhart/7zip-GUI/issues).
+Open an issue on [GitHub](https://github.com/DamienReichhart/Coffer/issues).

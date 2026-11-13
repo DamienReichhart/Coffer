@@ -44,7 +44,7 @@ pub enum Error {
     #[error("cancelled")]
     Cancelled,
 
-    /// 7-Zip refused the command line (exit code 7). This is a bug in 7zip-GUI.
+    /// 7-Zip refused the command line (exit code 7). This is a bug in Coffer.
     #[error("7-Zip rejected the command line: {0}")]
     CommandLine(String),
 

@@ -5,7 +5,7 @@ description: Open an archive and move around it without extracting anything.
 
 import DocScreenshot from '@/components/DocScreenshot.astro';
 
-7zip-GUI lists an archive’s contents with 7-Zip’s technical listing (`7z l -slt`), so you see every
+Coffer lists an archive’s contents with 7-Zip’s technical listing (`7z l -slt`), so you see every
 file and folder with its real sizes, dates and attributes — nothing is extracted to show it.
 
 ## Opening
@@ -15,10 +15,10 @@ Any of these opens an archive:
 - **Open archive** on the welcome screen, or the open button in the toolbar.
 - Dropping an archive onto the window (see [Drag and drop](/docs/guides/drag-and-drop/)).
 - A recent archive from the welcome screen’s list.
-- Your file manager’s *Open with → 7zip-GUI*, or `7zip-gui path/to/archive.7z` from a terminal
+- Your file manager’s *Open with → Coffer*, or `coffer path/to/archive.7z` from a terminal
   (see [Command line](/docs/guides/command-line/)).
 
-7zip-GUI opens every format your 7-Zip reads: 7z, ZIP, RAR, TAR, GZIP, BZIP2, XZ, ISO, DMG, CAB,
+Coffer opens every format your 7-Zip reads: 7z, ZIP, RAR, TAR, GZIP, BZIP2, XZ, ISO, DMG, CAB,
 WIM and many more. For split archives, open the first volume (`.7z.001`, `.zip.001`, `.part1.rar`).
 
 <DocScreenshot name="browse" alt="Browsing an archive" />
@@ -44,7 +44,7 @@ and the overall compression ratio.
 
 - If only the **contents** are encrypted, the list opens normally and a lock marks encrypted files;
   you are asked for the password when you extract or test.
-- If the **file names** are encrypted too (7z archives created with *Encrypt file names*), 7zip-GUI
+- If the **file names** are encrypted too (7z archives created with *Encrypt file names*), Coffer
   asks for the password before it can show anything.
 
 A wrong password is reported as such, and you can try again. Passwords are kept only in memory for

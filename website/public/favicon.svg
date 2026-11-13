@@ -4,23 +4,27 @@
       <stop offset="0" stop-color="#6C7BFF"/>
       <stop offset="1" stop-color="#3B3FC4"/>
     </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E2E6FF"/>
+    </linearGradient>
     <linearGradient id="lid" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#E4E7FF"/>
+      <stop offset="1" stop-color="#EEF0FF"/>
     </linearGradient>
   </defs>
   <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#bg)"/>
-  <!-- archive box -->
-  <path d="M120 196 L256 132 L392 196 L392 340 Q392 352 381 357 L267 410 Q256 415 245 410 L131 357 Q120 352 120 340 Z" fill="url(#lid)"/>
-  <path d="M120 196 L256 260 L392 196" fill="none" stroke="#3B3FC4" stroke-opacity=".18" stroke-width="10" stroke-linejoin="round"/>
-  <path d="M256 260 L256 412" stroke="#3B3FC4" stroke-opacity=".18" stroke-width="10"/>
-  <!-- zipper teeth -->
-  <g fill="#3B3FC4">
-    <rect x="244" y="150" width="24" height="12" rx="4"/>
-    <rect x="244" y="172" width="24" height="12" rx="4"/>
-    <rect x="244" y="194" width="24" height="12" rx="4"/>
-    <rect x="244" y="216" width="24" height="12" rx="4"/>
-  </g>
-  <!-- 7 on the front face -->
-  <path d="M148 262 L222 296 L188 380" fill="none" stroke="#4A52E0" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Coffer body -->
+  <rect x="112" y="236" width="288" height="156" rx="26" fill="url(#body)"/>
+  <!-- Domed lid -->
+  <path d="M112 236 L112 196 Q112 132 176 132 L336 132 Q400 132 400 196 L400 236 Z" fill="url(#lid)"/>
+  <!-- Seam between lid and body -->
+  <rect x="104" y="226" width="304" height="22" rx="11" fill="#3B3FC4" fill-opacity=".22"/>
+  <!-- Straps -->
+  <rect x="160" y="132" width="20" height="260" fill="#3B3FC4" fill-opacity=".14"/>
+  <rect x="332" y="132" width="20" height="260" fill="#3B3FC4" fill-opacity=".14"/>
+  <!-- Lock plate with keyhole -->
+  <rect x="216" y="204" width="80" height="96" rx="20" fill="#4A52E0"/>
+  <circle cx="256" cy="242" r="13" fill="#FFFFFF"/>
+  <path d="M249 248 L263 248 L267 276 L245 276 Z" fill="#FFFFFF"/>
 </svg>

@@ -2,9 +2,9 @@
 
 use std::path::{Path, PathBuf};
 
+use coffer_core::{ArchiveFormat, CompressOptions, CompressionLevel, CompressionMethod, SplitSize};
 use iced::widget::{Space, button, checkbox, column, container, row, scrollable, text};
 use iced::{Alignment, Length, Task};
-use sevenzip_core::{ArchiveFormat, CompressOptions, CompressionLevel, CompressionMethod, SplitSize};
 
 use crate::app::{App, Message, Screen};
 use crate::icons::{Icon, icon};

@@ -112,10 +112,10 @@ jobs:
           wix extension add --global WixToolset.UI.wixext/5.0.2
 
       - name: Build
-        run: cargo build --release --locked --target "$TARGET" -p sevenzip-gui
+        run: cargo build --release --locked --target "$TARGET" -p coffer
         env:
           # Release binaries refuse to run without the key; fail here, not in users' hands.
-          SEVENZIP_GUI_REQUIRE_UPDATE_KEY: '1'
+          COFFER_REQUIRE_UPDATE_KEY: '1'
 
       - name: Import the Apple signing certificate
         if: runner.os == 'macOS'
@@ -195,13 +195,13 @@ jobs:
         run: |
           missing=0
           for os_arch in linux-x64 linux-arm64; do
-            for ext in deb rpm AppImage; do f="7zip-GUI-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
+            for ext in deb rpm AppImage; do f="Coffer-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
           done
           for os_arch in windows-x64 windows-arm64; do
-            for ext in msi zip; do f="7zip-GUI-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
+            for ext in msi zip; do f="Coffer-$VERSION-$os_arch.$ext"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }; done
           done
           for os_arch in macos-x64 macos-arm64; do
-            f="7zip-GUI-$VERSION-$os_arch.dmg"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }
+            f="Coffer-$VERSION-$os_arch.dmg"; [ -f "$f" ] && [ -f "$f.minisig" ] || { echo "::error::missing $f"; missing=1; }
           done
           exit "$missing"
       - name: Checksums
@@ -218,5 +218,5 @@ jobs:
           [ "$PRERELEASE" = true ] && flags+=(--prerelease --latest=false)
           # Creates the tag on the commit that was built, and publishes once every file is uploaded.
           gh release create "$TAG" installers/* \
-            --target "$GITHUB_SHA" --title "7zip-GUI $VERSION" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
+            --target "$GITHUB_SHA" --title "Coffer $VERSION" --notes-file "$RUNNER_TEMP/notes.md" "${flags[@]}"
           echo "Published [$TAG]($(gh release view "$TAG" --json url --jq .url))" >> "$GITHUB_STEP_SUMMARY"

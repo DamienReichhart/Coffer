@@ -18,7 +18,7 @@ Open **Settings** from the sidebar. Changes apply immediately and are saved auto
 
 - **Executable** — the 7-Zip program in use, its version and where it was found. Leave it on
   automatic detection or **Browse** to a specific `7zz`, `7z` or `7za`
-  (see [how 7-Zip is found](/docs/installing-7zip/#how-7zip-gui-finds-7-zip)).
+  (see [how 7-Zip is found](/docs/installing-7zip/#how-coffer-finds-7-zip)).
 - **Detect again** — re-runs detection after you install or update 7-Zip.
 
 ## Defaults
@@ -44,10 +44,10 @@ Settings are a TOML file, `settings.toml`, in your user configuration folder:
 
 | Platform | Location |
 | --- | --- |
-| Linux | `~/.config/7zip-gui/settings.toml` (or `$XDG_CONFIG_HOME/7zip-gui/`) |
-| macOS | `~/Library/Application Support/io.github.damienreichhart.SevenZipGui/settings.toml` |
-| Windows | `%APPDATA%\DamienReichhart\7zip-GUI\config\settings.toml` |
+| Linux | `~/.config/coffer/settings.toml` (or `$XDG_CONFIG_HOME/coffer/`) |
+| macOS | `~/Library/Application Support/io.github.damienreichhart.Coffer/settings.toml` |
+| Windows | `%APPDATA%\DamienReichhart\Coffer\config\settings.toml` |
 
 The file is safe to delete (the app recreates it with defaults) and to copy to another computer. If
-it can’t be read — after a manual edit gone wrong, say — 7zip-GUI starts with the defaults and keeps
+it can’t be read — after a manual edit gone wrong, say — Coffer starts with the defaults and keeps
 the broken file aside instead of overwriting it.

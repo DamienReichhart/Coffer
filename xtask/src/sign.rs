@@ -12,9 +12,9 @@ use anyhow::{Context, Result, bail, ensure};
 
 const PUBLIC_KEY: &str = "packaging/keys/update.pub";
 
-/// Must stay identical to `sevenzip_updater::download::trusted_comment`.
+/// Must stay identical to `coffer_updater::download::trusted_comment`.
 pub fn trusted_comment(version: &str, name: &str) -> String {
-    format!("7zip-GUI {version} {name}")
+    format!("Coffer {version} {name}")
 }
 
 fn secret_key() -> Result<minisign::SecretKey> {
@@ -44,7 +44,7 @@ fn public_key(root: &Path) -> Result<minisign::PublicKey> {
 pub fn check(root: &Path) -> Result<()> {
     let secret = secret_key()?;
     let public = public_key(root)?;
-    let data = b"7zip-GUI signing check";
+    let data = b"Coffer signing check";
     let signature = minisign::sign(None, &secret, Cursor::new(data), Some("check"), None)?;
     minisign::verify(&public, &signature, Cursor::new(data), true, false, false)
         .context("UPDATE_SIGNING_KEY does not match packaging/keys/update.pub")?;
@@ -63,7 +63,7 @@ pub fn sign_files(version: &str, files: &[PathBuf]) -> Result<()> {
             &secret,
             std::io::BufReader::new(data),
             Some(&trusted_comment(version, name)),
-            Some("signature from the 7zip-GUI release key"),
+            Some("signature from the Coffer release key"),
         )?;
         let out = PathBuf::from(format!("{}.minisig", file.display()));
         std::fs::write(&out, signature.into_string())?;
@@ -84,7 +84,7 @@ pub fn keygen(root: &Path, secret_out: &Path, encrypted: bool) -> Result<()> {
         minisign::KeyPair::generate_unencrypted_keypair()?
     };
     let public = pair.pk.to_box()?.into_string();
-    let secret = pair.sk.to_box(Some("7zip-GUI update signing key"))?.into_string();
+    let secret = pair.sk.to_box(Some("Coffer update signing key"))?.into_string();
     std::fs::create_dir_all(root.join("packaging/keys"))?;
     std::fs::write(root.join(PUBLIC_KEY), &public)?;
     std::fs::write(secret_out, secret)?;

@@ -1,5 +1,5 @@
 [package]
-name = "sevenzip-core"
+name = "coffer-core"
 description = "Find, drive and understand a user-installed 7-Zip command-line executable."
 version.workspace = true
 edition.workspace = true

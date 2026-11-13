@@ -4,7 +4,7 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting! Please check the [troubleshooting guide](https://damienreichhart.github.io/7zip-GUI/docs/troubleshooting/) first.
+      value: Thanks for reporting! Please check the [troubleshooting guide](https://damienreichhart.github.io/Coffer/docs/troubleshooting/) first.
   - type: textarea
     id: what
     attributes:
@@ -21,7 +21,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: 7zip-GUI version and install type
+      label: Coffer version and install type
       description: Shown in About (e.g. "0.1.0, msi").
     validations:
       required: true

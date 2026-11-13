@@ -8,11 +8,11 @@
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
+use coffer_core::command::Dialect;
+use coffer_core::{Listing, SevenZip, runner};
 use iced::keyboard::{self, Key, Modifiers, key::Named};
 use iced::widget::{column, container, row, stack};
 use iced::{Element, Event, Length, Subscription, Task, Theme, event, window};
-use sevenzip_core::command::Dialect;
-use sevenzip_core::{Listing, SevenZip, runner};
 
 use crate::cli::Launch;
 use crate::jobs::{AppError, JobId, Jobs, Spec, Status};
@@ -72,7 +72,7 @@ pub enum Message {
     Activity(activity::Msg),
     Modal(modal::Msg),
     Update(update::Msg),
-    Job(JobId, sevenzip_core::Event),
+    Job(JobId, coffer_core::Event),
     SystemTheme(iced::theme::Mode),
     FileHovered,
     FilesHoveredLeft,
@@ -431,24 +431,24 @@ impl App {
         Task::none()
     }
 
-    fn job_event(&mut self, id: JobId, event: sevenzip_core::Event) -> Task<Message> {
+    fn job_event(&mut self, id: JobId, event: coffer_core::Event) -> Task<Message> {
         let Some(job) = self.jobs.get_mut(id) else { return Task::none() };
         match event {
-            sevenzip_core::Event::Progress { percent, file } => {
+            coffer_core::Event::Progress { percent, file } => {
                 job.percent = percent;
                 if file.is_some() {
                     job.current = file;
                 }
                 Task::none()
             }
-            sevenzip_core::Event::Log(line) => {
-                if let Some(file) = sevenzip_core::progress::logged_file(&line) {
+            coffer_core::Event::Log(line) => {
+                if let Some(file) = coffer_core::progress::logged_file(&line) {
                     job.current = Some(file.to_owned());
                 }
                 job.push_log(line);
                 Task::none()
             }
-            sevenzip_core::Event::Finished(result) => {
+            coffer_core::Event::Finished(result) => {
                 if !job.is_running() {
                     return Task::none(); // already cancelled
                 }

@@ -71,7 +71,7 @@ fn msi(installer: &Path, exe: &Path) -> Result<Handover, Error> {
 fn portable(installer: &Path, exe: &Path) -> Result<Handover, Error> {
     let file = std::fs::File::open(installer)?;
     let mut archive = zip::ZipArchive::new(file).map_err(|e| Error::Install(e.to_string()))?;
-    let wanted = exe.file_name().and_then(|n| n.to_str()).unwrap_or("7zip-gui.exe").to_owned();
+    let wanted = exe.file_name().and_then(|n| n.to_str()).unwrap_or("coffer.exe").to_owned();
     let mut found = None;
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i).map_err(|e| Error::Install(e.to_string()))?;
@@ -109,7 +109,7 @@ hdiutil detach -quiet "$mnt"
 rmdir "$mnt" 2>/dev/null
 open "$target"
 "#;
-    // .../7zip-GUI.app/Contents/MacOS/7zip-gui → .../7zip-GUI.app
+    // .../Coffer.app/Contents/MacOS/coffer → .../Coffer.app
     let bundle = exe
         .ancestors()
         .nth(3)

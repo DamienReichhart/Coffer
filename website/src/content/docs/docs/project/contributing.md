@@ -7,9 +7,9 @@ Contributions are welcome — bug reports, ideas, documentation fixes and code.
 
 ## Reporting a bug
 
-Open an [issue](https://github.com/DamienReichhart/7zip-GUI/issues/new/choose) with:
+Open an [issue](https://github.com/DamienReichhart/Coffer/issues/new/choose) with:
 
-- your operating system and architecture, the 7zip-GUI version (**About**) and the 7-Zip version
+- your operating system and architecture, the Coffer version (**About**) and the 7-Zip version
   (**Settings → 7-Zip**);
 - what you did, what you expected and what happened;
 - the job’s **View log** output, if a job failed.

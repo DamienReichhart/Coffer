@@ -5,11 +5,11 @@ description: Fixes for the problems people run into most.
 
 ## “7-Zip was not found”
 
-7zip-GUI needs 7-Zip installed separately. [Install it](/docs/installing-7zip/), then press
+Coffer needs 7-Zip installed separately. [Install it](/docs/installing-7zip/), then press
 **Detect again** in **Settings → 7-Zip** (or on the welcome screen). If it is installed somewhere
 unusual, point **Settings → 7-Zip → Executable** at it.
 
-On macOS, apps started from Finder don’t see your shell’s `PATH`; 7zip-GUI looks in Homebrew’s and
+On macOS, apps started from Finder don’t see your shell’s `PATH`; Coffer looks in Homebrew’s and
 MacPorts’ folders for that reason. A copy elsewhere needs the Executable setting.
 
 ## An archive won’t open
@@ -33,11 +33,11 @@ long for the file system.
 
 ## The window is blank or flickers (Linux)
 
-7zip-GUI draws with the GPU through Vulkan or OpenGL and falls back to a software renderer. On
+Coffer draws with the GPU through Vulkan or OpenGL and falls back to a software renderer. On
 virtual machines or old drivers, force the software renderer:
 
 ```sh
-ICED_BACKEND=tiny-skia 7zip-gui
+ICED_BACKEND=tiny-skia coffer
 ```
 
 ## macOS says the app is damaged
@@ -58,5 +58,5 @@ The build isn’t notarized. See [Installation → macOS](/docs/installation/).
 ## Logs
 
 **Settings → Advanced → Open log folder** opens the app’s log files. Attach the latest one, and the
-job’s 7-Zip log, when you [open an issue](https://github.com/DamienReichhart/7zip-GUI/issues). Set
+job’s 7-Zip log, when you [open an issue](https://github.com/DamienReichhart/Coffer/issues). Set
 `RUST_LOG=debug` before starting the app for more detail.

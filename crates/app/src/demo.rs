@@ -6,8 +6,8 @@
 use std::path::PathBuf;
 use std::time::{Duration, Instant};
 
-use sevenzip_core::listing::{ArchiveInfo, Entry};
-use sevenzip_core::{HashAlgorithm, Listing, SevenZip, Version};
+use coffer_core::listing::{ArchiveInfo, Entry};
+use coffer_core::{HashAlgorithm, Listing, SevenZip, Version};
 
 use crate::app::{App, Screen, SevenState};
 use crate::jobs::{Job, Spec, Status};
@@ -57,7 +57,7 @@ fn seven() -> SevenZip {
             PathBuf::from("/usr/bin/7zz")
         },
         version: Version::new(24, 9),
-        flavor: sevenzip_core::Flavor::Official,
+        flavor: coffer_core::Flavor::Official,
     }
 }
 
@@ -162,7 +162,7 @@ pub fn app(scene: Scene, dark: bool) -> App {
             ]);
             "correct horse battery staple".clone_into(&mut app.compress.password);
             app.compress.confirm.clone_from(&app.compress.password);
-            app.compress.level = sevenzip_core::CompressionLevel::Maximum;
+            app.compress.level = coffer_core::CompressionLevel::Maximum;
             app.screen = Screen::Compress;
         }
         Scene::Extract => {
@@ -177,7 +177,7 @@ pub fn app(scene: Scene, dark: bool) -> App {
                     Spec::Compress {
                         archive: home().join("Pictures").join("Iceland 2026.7z"),
                         inputs: vec![home().join("Pictures").join("Iceland 2026")],
-                        options: sevenzip_core::CompressOptions::default(),
+                        options: coffer_core::CompressOptions::default(),
                     },
                     Status::Running,
                     62,
@@ -188,7 +188,7 @@ pub fn app(scene: Scene, dark: bool) -> App {
                     3,
                     Spec::Extract {
                         archive: home().join("Downloads").join("photos-2026-summer.zip"),
-                        options: sevenzip_core::ExtractOptions {
+                        options: coffer_core::ExtractOptions {
                             destination: home().join("Downloads").join("photos-2026-summer"),
                             ..Default::default()
                         },
@@ -211,7 +211,7 @@ pub fn app(scene: Scene, dark: bool) -> App {
                     1,
                     Spec::Extract {
                         archive: home().join("Backups").join("thesis-final.tar.xz"),
-                        options: sevenzip_core::ExtractOptions {
+                        options: coffer_core::ExtractOptions {
                             destination: home().join("Documents").join("thesis-final"),
                             ..Default::default()
                         },
@@ -230,7 +230,7 @@ pub fn app(scene: Scene, dark: bool) -> App {
             app.checksums.files = vec![file];
             app.checksums.algorithms = vec![HashAlgorithm::Crc32, HashAlgorithm::Sha256];
             "9f2e81c0a5e4c7b16a3a6e2b1c0b8f4d6e0e1f3a7c9d2b5e8f1a4c7d0e3b6a9f".clone_into(&mut app.checksums.compare);
-            app.checksums.results = vec![sevenzip_core::hash::FileHashes {
+            app.checksums.results = vec![coffer_core::hash::FileHashes {
                 path: "ubuntu-26.04-desktop-amd64.iso".to_owned(),
                 size: Some(6_114_656_256),
                 digests: vec![

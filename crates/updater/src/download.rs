@@ -146,7 +146,7 @@ pub fn verify(path: &Path, asset: &Asset, version: &semver::Version, public_key:
 /// Binding the version and file name into the signature prevents replaying
 /// an older, validly signed installer as an update.
 pub fn trusted_comment(version: &str, name: &str) -> String {
-    format!("7zip-GUI {version} {name}")
+    format!("Coffer {version} {name}")
 }
 
 fn hex(bytes: &[u8]) -> String {
@@ -178,7 +178,7 @@ mod tests {
             &pair.sk,
             content,
             Some(&trusted_comment(version, name)),
-            Some("signature from the 7zip-GUI release key"),
+            Some("signature from the Coffer release key"),
         )
         .expect("sign")
         .into_string();
@@ -199,7 +199,7 @@ mod tests {
 
     #[test]
     fn accepts_a_correctly_signed_file() {
-        let s = signed(b"installer bytes", "1.2.3", "7zip-GUI-1.2.3-linux-x64.deb");
+        let s = signed(b"installer bytes", "1.2.3", "Coffer-1.2.3-linux-x64.deb");
         verify(&s.path, &s.asset, &v("1.2.3"), &s.public_key).expect("valid");
         drop(s.dir);
     }

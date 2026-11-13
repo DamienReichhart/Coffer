@@ -1,6 +1,6 @@
 {
-  "name": "7zip-GUI",
-  "short_name": "7zip-GUI",
+  "name": "Coffer",
+  "short_name": "Coffer",
   "description": "A modern desktop app for 7-Zip.",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },

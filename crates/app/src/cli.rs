@@ -1,4 +1,4 @@
-//! The command line: `7zip-gui [PATHS…]`, `--extract`, `--compress`.
+//! The command line: `coffer [PATHS…]`, `--extract`, `--compress`.
 //!
 //! Desktop integrations (file associations, "Open with", the context menus a
 //! packager adds) call the app this way.
@@ -9,7 +9,7 @@ use clap::Parser;
 
 /// A modern desktop interface for 7-Zip.
 #[derive(Debug, Parser)]
-#[command(name = "7zip-gui", version, about, long_about = None)]
+#[command(name = "coffer", version, about, long_about = None)]
 pub struct Cli {
     /// An archive to open, or files and folders to compress.
     pub paths: Vec<PathBuf>,
@@ -63,7 +63,7 @@ mod tests {
     use super::*;
 
     fn launch(args: &[&str]) -> Launch {
-        Cli::try_parse_from(std::iter::once("7zip-gui").chain(args.iter().copied()))
+        Cli::try_parse_from(std::iter::once("coffer").chain(args.iter().copied()))
             .expect("valid arguments")
             .into_launch()
     }
@@ -91,6 +91,6 @@ mod tests {
 
     #[test]
     fn rejects_to_without_extract() {
-        assert!(Cli::try_parse_from(["7zip-gui", "--to", "x"]).is_err());
+        assert!(Cli::try_parse_from(["coffer", "--to", "x"]).is_err());
     }
 }

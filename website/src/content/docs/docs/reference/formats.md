@@ -1,9 +1,9 @@
 ---
 title: Supported formats
-description: Which archive formats 7zip-GUI can create, and which it can open.
+description: Which archive formats Coffer can create, and which it can open.
 ---
 
-7zip-GUI supports exactly what your 7-Zip supports. With a current 7-Zip:
+Coffer supports exactly what your 7-Zip supports. With a current 7-Zip:
 
 ## Create, open and update
 

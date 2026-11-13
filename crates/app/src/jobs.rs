@@ -4,8 +4,8 @@ use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use sevenzip_core::command::{self, Args, Dialect};
-use sevenzip_core::{CompressOptions, Error, ExtractOptions, HashAlgorithm, Outcome};
+use coffer_core::command::{self, Args, Dialect};
+use coffer_core::{CompressOptions, Error, ExtractOptions, HashAlgorithm, Outcome};
 
 use crate::icons::Icon;
 
@@ -74,7 +74,7 @@ impl Spec {
                 archive,
                 &ExtractOptions {
                     destination: dir.clone(),
-                    overwrite: sevenzip_core::OverwriteMode::Overwrite,
+                    overwrite: coffer_core::OverwriteMode::Overwrite,
                     keep_paths: false,
                     password: password.clone(),
                     only: vec![entry.clone()],

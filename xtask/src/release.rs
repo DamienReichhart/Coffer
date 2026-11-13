@@ -10,7 +10,7 @@ use anyhow::{Context, Result, bail, ensure};
 use crate::{capture, changelog, workspace_version};
 
 /// The crates whose version must equal the release version.
-const CRATES: [&str; 3] = ["sevenzip-core", "sevenzip-updater", "sevenzip-gui"];
+const CRATES: [&str; 3] = ["coffer-core", "coffer-updater", "coffer"];
 
 pub fn plan(root: &Path, notes: Option<&Path>, check_git: bool) -> Result<()> {
     let version = workspace_version(root)?;
@@ -49,8 +49,8 @@ pub fn plan(root: &Path, notes: Option<&Path>, check_git: bool) -> Result<()> {
     let mut body = section.body.clone();
     let _ = write!(
         body,
-        "\n\n---\n\n**Install:** see the [download page](https://damienreichhart.github.io/7zip-GUI/download/). \
-         7zip-GUI needs a 7-Zip you install yourself ([how](https://damienreichhart.github.io/7zip-GUI/docs/installing-7zip/)). \
+        "\n\n---\n\n**Install:** see the [download page](https://damienreichhart.github.io/Coffer/download/). \
+         Coffer needs a 7-Zip you install yourself ([how](https://damienreichhart.github.io/Coffer/docs/installing-7zip/)). \
          Every file is listed in `SHA256SUMS.txt`, signed with minisign (`.minisig`) and has build provenance (`gh attestation verify`)."
     );
     if let Some(path) = notes {

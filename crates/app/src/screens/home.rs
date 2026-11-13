@@ -126,10 +126,10 @@ pub fn missing<'a>(invalid: Option<(String, String)>) -> El<'a> {
         ),
         None => (
             "7-Zip is not installed".to_owned(),
-            "7zip-GUI drives the 7-Zip you install; it doesn't include one. Install it with one of these, then press Check again.".to_owned(),
+            "Coffer drives the 7-Zip you install; it doesn't include one. Install it with one of these, then press Check again.".to_owned(),
         ),
     };
-    let methods = sevenzip_core::install::methods().iter().map(|m| {
+    let methods = coffer_core::install::methods().iter().map(|m| {
         let right: El<'a> = match m.command {
             Some(command) => row![
                 container(ui::mono(command)).padding([6, 10]).style(theme::inset).width(Length::Fill),
@@ -141,7 +141,7 @@ pub fn missing<'a>(invalid: Option<(String, String)>) -> El<'a> {
             None => ui::secondary(
                 Some(Icon::ExternalLink),
                 "7-zip.org",
-                Some(Message::OpenUrl(sevenzip_core::install::DOWNLOAD_PAGE.into())),
+                Some(Message::OpenUrl(coffer_core::install::DOWNLOAD_PAGE.into())),
             )
             .into(),
         };

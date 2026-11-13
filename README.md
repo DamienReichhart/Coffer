@@ -2,33 +2,33 @@
   <img src="assets/brand/icon.svg" width="96" height="96" alt="">
 </p>
 
-<h1 align="center">7zip-GUI</h1>
+<h1 align="center">Coffer</h1>
 
 <p align="center">
   A modern, native desktop interface for 7-Zip — for Windows, macOS and Linux, on x64 and ARM.<br>
-  <a href="https://damienreichhart.github.io/7zip-GUI/">Website</a> ·
-  <a href="https://damienreichhart.github.io/7zip-GUI/download/">Download</a> ·
-  <a href="https://damienreichhart.github.io/7zip-GUI/docs/">Documentation</a> ·
+  <a href="https://damienreichhart.github.io/Coffer/">Website</a> ·
+  <a href="https://damienreichhart.github.io/Coffer/download/">Download</a> ·
+  <a href="https://damienreichhart.github.io/Coffer/docs/">Documentation</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DamienReichhart/7zip-GUI/actions/workflows/ci.yml"><img src="https://github.com/DamienReichhart/7zip-GUI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/DamienReichhart/7zip-GUI/actions/workflows/release.yml"><img src="https://github.com/DamienReichhart/7zip-GUI/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+  <a href="https://github.com/DamienReichhart/Coffer/actions/workflows/ci.yml"><img src="https://github.com/DamienReichhart/Coffer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/DamienReichhart/Coffer/actions/workflows/release.yml"><img src="https://github.com/DamienReichhart/Coffer/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT licence"></a>
 </p>
 
 ---
 
-7zip-GUI opens, creates, extracts, tests and checksums archives by driving the
+Coffer opens, creates, extracts, tests and checksums archives by driving the
 **7-Zip command-line program you install yourself**. It is written in Rust with
 [iced](https://iced.rs): one small native binary per platform, no web view, no
 runtime.
 
-> **7-Zip is not included.** 7zip-GUI never bundles, downloads or links 7-Zip.
+> **7-Zip is not included.** Coffer never bundles, downloads or links 7-Zip.
 > Install it with `winget install 7zip.7zip`, `brew install sevenzip` or
-> `sudo apt install 7zip` (more in the [docs](https://damienreichhart.github.io/7zip-GUI/docs/installing-7zip/)).
-> 7zip-GUI is an independent project, not affiliated with 7-Zip or Igor Pavlov.
+> `sudo apt install 7zip` (more in the [docs](https://damienreichhart.github.io/Coffer/docs/installing-7zip/)).
+> Coffer is an independent project, not affiliated with 7-Zip or Igor Pavlov.
 
 ## Features
 
@@ -49,8 +49,8 @@ runtime.
 | macOS 11+ (Apple silicon), 10.15+ (Intel) | `.dmg` |
 | Linux (x64, ARM64) | `.deb`, `.rpm`, `.AppImage`, APT and DNF repositories |
 
-Everything is on the [download page](https://damienreichhart.github.io/7zip-GUI/download/) and on
-[GitHub Releases](https://github.com/DamienReichhart/7zip-GUI/releases), with `SHA256SUMS.txt`,
+Everything is on the [download page](https://damienreichhart.github.io/Coffer/download/) and on
+[GitHub Releases](https://github.com/DamienReichhart/Coffer/releases), with `SHA256SUMS.txt`,
 minisign signatures and build provenance.
 
 ## Build from source
@@ -58,7 +58,7 @@ minisign signatures and build provenance.
 Rust is pinned in `rust-toolchain.toml` (rustup installs it automatically).
 
 ```bash
-cargo run -p sevenzip-gui
+cargo run -p coffer
 ```
 
 ```bash
@@ -74,7 +74,7 @@ On Linux no system libraries are needed to build; at run time the window needs `
 | --- | --- |
 | `crates/core` | Finding and driving 7-Zip: command lines, listings, progress, checksums. No UI. |
 | `crates/updater` | Update manifest, verified downloads, platform installers. No UI. |
-| `crates/app` | The iced application (binary `7zip-gui`) and the screenshot generator. |
+| `crates/app` | The iced application (binary `coffer`) and the screenshot generator. |
 | `xtask` | Release tooling: `cargo xtask release-plan`, `package`, `sign`, `icons`. |
 | `packaging/` | Desktop entry, AppStream, WiX, `Info.plist`, public keys. |
 | `website/` | Astro + Starlight site and documentation (GitHub Pages). |

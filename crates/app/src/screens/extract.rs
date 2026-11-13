@@ -2,9 +2,9 @@
 
 use std::path::PathBuf;
 
+use coffer_core::{ExtractOptions, OverwriteMode};
 use iced::widget::{column, row, text};
 use iced::{Alignment, Length, Task};
-use sevenzip_core::{ExtractOptions, OverwriteMode};
 
 use crate::app::{App, Message, Screen};
 use crate::icons::Icon;

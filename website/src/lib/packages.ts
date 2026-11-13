@@ -2,7 +2,7 @@
  * Build-time facts about the signing keys in the repository (read from disk in
  * the build, never shipped to the browser):
  *
- *   ../packaging/linux/7zip-gui.asc   the APT/RPM repositories' public GPG key.
+ *   ../packaging/linux/coffer.asc   the APT/RPM repositories' public GPG key.
  *                                     The repository instructions (and the key
  *                                     and .repo files) only exist when it does.
  *   ../packaging/keys/update.pub      the minisign key installers are signed with.
@@ -19,7 +19,7 @@ function read(path: string): string | null {
 }
 
 /** The armored public key of the package repositories, or null. */
-export const repositoryKey: string | null = read('packaging/linux/7zip-gui.asc');
+export const repositoryKey: string | null = read('packaging/linux/coffer.asc');
 
 /** The minisign public key (its base64 line), or null. */
 export const minisignKey: string | null = (() => {
@@ -33,16 +33,16 @@ export const minisignKey: string | null = (() => {
 })();
 
 /** The package name in the deb/rpm repositories. */
-export const PACKAGE = '7zip-gui';
+export const PACKAGE = 'coffer';
 
-/** The dnf/zypper repository definition served at `<site>/7zip-gui.repo`. */
+/** The dnf/zypper repository definition served at `<site>/coffer.repo`. */
 export function repoFile(root: string): string {
-  return `[7zip-gui]
-name=7zip-GUI
+  return `[coffer]
+name=Coffer
 baseurl=${root}/rpm/
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=${root}/7zip-gui.asc
+gpgkey=${root}/coffer.asc
 `;
 }

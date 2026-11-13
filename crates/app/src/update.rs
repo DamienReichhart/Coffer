@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use coffer_updater::{Handover, Progress, Update};
 use iced::Task;
 use iced::futures::SinkExt;
-use sevenzip_updater::{Handover, Progress, Update};
 
 use crate::app::Message;
 
@@ -148,20 +148,20 @@ impl Updater {
                     async move |mut output: iced::futures::channel::mpsc::Sender<Message>| {
                         let (tx, mut rx) = iced::futures::channel::mpsc::unbounded::<Progress>();
                         let worker = tokio::task::spawn_blocking(move || {
-                            let agent = sevenzip_updater::agent();
-                            let file = sevenzip_updater::download(
+                            let agent = coffer_updater::agent();
+                            let file = coffer_updater::download(
                                 &agent,
                                 &asset,
                                 &version,
                                 &crate::settings::paths::update_dir(),
-                                sevenzip_updater::PUBLIC_KEY,
+                                coffer_updater::PUBLIC_KEY,
                                 &cancel,
                                 |p| {
                                     let _ = tx.unbounded_send(p);
                                 },
                             )
                             .map_err(|e| e.to_string())?;
-                            sevenzip_updater::install(kind, &file, &exe).map_err(|e| e.to_string())
+                            coffer_updater::install(kind, &file, &exe).map_err(|e| e.to_string())
                         });
                         while let Some(p) = iced::futures::StreamExt::next(&mut rx).await {
                             let _ = output.send(Message::Update(Msg::Progress(p))).await;
@@ -187,7 +187,7 @@ impl Updater {
                 Ok(handover) if handover.quit => Effect::Quit,
                 Ok(_) => {
                     self.state = State::HandedOver;
-                    Effect::Toast("The installer has opened. Finish the update there, then restart 7zip-GUI.".into())
+                    Effect::Toast("The installer has opened. Finish the update there, then restart Coffer.".into())
                 }
                 Err(error) => {
                     let update = match &self.state {
@@ -218,7 +218,7 @@ impl Updater {
 async fn check() -> Result<Option<Update>, String> {
     tokio::task::spawn_blocking(|| {
         let current: semver::Version = crate::VERSION.parse().map_err(|e: semver::Error| e.to_string())?;
-        sevenzip_updater::check(&sevenzip_updater::agent(), &sevenzip_updater::manifest_url(), &current)
+        coffer_updater::check(&coffer_updater::agent(), &coffer_updater::manifest_url(), &current)
             .map_err(|e| e.to_string())
     })
     .await

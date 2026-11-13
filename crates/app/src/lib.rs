@@ -1,4 +1,4 @@
-//! 7zip-GUI: a modern, native desktop interface for 7-Zip, built with iced.
+//! Coffer: a modern, native desktop interface for 7-Zip, built with iced.
 //!
 //! The binary (`src/main.rs`) only parses the command line and calls [`run`].
 //! Everything else lives here so the screenshot generator
@@ -20,16 +20,16 @@ pub mod update;
 pub use app::{App, Message};
 
 /// The product name, as shown to people.
-pub const APP_NAME: &str = "7zip-GUI";
+pub const APP_NAME: &str = "Coffer";
 /// The running version (the workspace version).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The website and the pages the app links to.
-pub const WEBSITE: &str = "https://damienreichhart.github.io/7zip-GUI/";
-pub const DOCS: &str = "https://damienreichhart.github.io/7zip-GUI/docs/";
-pub const DOWNLOAD_PAGE: &str = "https://damienreichhart.github.io/7zip-GUI/download/";
-pub const CHANGELOG: &str = "https://damienreichhart.github.io/7zip-GUI/changelog/";
-pub const REPOSITORY: &str = "https://github.com/DamienReichhart/7zip-GUI";
-pub const ISSUES: &str = "https://github.com/DamienReichhart/7zip-GUI/issues/new/choose";
+pub const WEBSITE: &str = "https://damienreichhart.github.io/Coffer/";
+pub const DOCS: &str = "https://damienreichhart.github.io/Coffer/docs/";
+pub const DOWNLOAD_PAGE: &str = "https://damienreichhart.github.io/Coffer/download/";
+pub const CHANGELOG: &str = "https://damienreichhart.github.io/Coffer/changelog/";
+pub const REPOSITORY: &str = "https://github.com/DamienReichhart/Coffer";
+pub const ISSUES: &str = "https://github.com/DamienReichhart/Coffer/issues/new/choose";
 
 /// Starts the application with what the command line asked for.
 pub fn run(launch: cli::Launch) -> iced::Result {
@@ -38,7 +38,7 @@ pub fn run(launch: cli::Launch) -> iced::Result {
         .theme(App::theme)
         .subscription(App::subscription)
         .settings(iced::Settings {
-            id: Some("io.github.damienreichhart.SevenZipGui".into()),
+            id: Some("io.github.damienreichhart.Coffer".into()),
             default_font: fonts::REGULAR,
             default_text_size: iced::Pixels(14.0),
             antialiasing: true,
@@ -66,7 +66,7 @@ fn window_settings() -> iced::window::Settings {
 fn platform_window() -> iced::window::settings::PlatformSpecific {
     iced::window::settings::PlatformSpecific {
         // Matches the desktop entry, so docks group the window with the launcher.
-        application_id: "io.github.damienreichhart.SevenZipGui".into(),
+        application_id: "io.github.damienreichhart.Coffer".into(),
         ..Default::default()
     }
 }

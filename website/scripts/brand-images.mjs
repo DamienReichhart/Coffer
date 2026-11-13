@@ -40,7 +40,7 @@ const card = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" 
   </defs>
   <rect width="1200" height="630" fill="#121316"/>
   <rect width="1200" height="630" fill="url(#glow)"/>
-  <text x="96" y="330" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="96" font-weight="700" fill="#ECEDEF" letter-spacing="-3">7zip-GUI</text>
+  <text x="96" y="330" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="96" font-weight="700" fill="#ECEDEF" letter-spacing="-3">Coffer</text>
   <text x="98" y="402" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="38" font-weight="500" fill="#9A9DA8">A modern desktop app for 7-Zip.</text>
   <text x="98" y="520" font-family="Inter, 'DejaVu Sans', sans-serif" font-size="26" font-weight="500" fill="#7C8CFF">Windows · macOS · Linux — free and open source</text>
 </svg>`;

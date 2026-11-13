@@ -12,12 +12,12 @@ edition = "2024"
 rust-version = "1.92"
 license = "MIT"
 authors = ["Damien Reichhart"]
-repository = "https://github.com/DamienReichhart/7zip-GUI"
-homepage = "https://damienreichhart.github.io/7zip-GUI/"
+repository = "https://github.com/DamienReichhart/Coffer"
+homepage = "https://damienreichhart.github.io/Coffer/"
 
 [workspace.dependencies]
-sevenzip-core = { path = "crates/core" }
-sevenzip-updater = { path = "crates/updater" }
+coffer-core = { path = "crates/core" }
+coffer-updater = { path = "crates/updater" }
 
 anyhow = "1.0.104"
 async-stream = "0.3.6"
