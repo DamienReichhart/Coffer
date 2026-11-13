@@ -17,10 +17,10 @@ pub fn view(app: &App) -> El<'_> {
     let kind = coffer_updater::InstallKind::detect().map_or_else(|| "development build".to_owned(), |k| k.to_string());
 
     let hero = row![
-        svg(svg::Handle::from_memory(LOGO)).width(84).height(84),
+        svg(svg::Handle::from_memory(LOGO)).width(56).height(56),
         column![
-            text(crate::APP_NAME).font(fonts::SEMIBOLD).size(28),
-            ui::muted("A modern, native desktop interface for 7-Zip."),
+            text(crate::APP_NAME).font(fonts::SEMIBOLD).size(22),
+            ui::muted("A native desktop interface for 7-Zip.").size(13),
             row![
                 ui::badge(format!("Version {}", crate::VERSION), crate::theme::Tone::Accent),
                 ui::badge(target, crate::theme::Tone::Neutral),
@@ -30,14 +30,14 @@ pub fn view(app: &App) -> El<'_> {
         ]
         .spacing(8),
     ]
-    .spacing(22)
+    .spacing(16)
     .align_y(Alignment::Center);
 
     let links = row![
         ui::secondary(Some(Icon::ExternalLink), "Website", Some(Message::OpenUrl(crate::WEBSITE.into()))),
         ui::secondary(Some(Icon::BookOpen), "Documentation", Some(Message::OpenUrl(crate::DOCS.into()))),
         ui::secondary(Some(Icon::Sparkles), "What's new", Some(Message::OpenUrl(crate::CHANGELOG.into()))),
-        ui::secondary(Some(Icon::GitBranch), "Source code", Some(Message::OpenUrl(crate::REPOSITORY.into()))),
+        ui::secondary(Some(Icon::Github), "Source code", Some(Message::OpenUrl(crate::REPOSITORY.into()))),
         ui::secondary(Some(Icon::LifeBuoy), "Report a problem", Some(Message::OpenUrl(crate::ISSUES.into()))),
     ]
     .spacing(8)
@@ -65,5 +65,5 @@ pub fn view(app: &App) -> El<'_> {
         .into(),
     );
 
-    ui::page(container(hero).width(Length::Fill).into(), column![links, details, legal].spacing(ui::L).into())
+    ui::page(container(hero).width(Length::Fill).into(), column![links, details, legal].spacing(ui::XL).into())
 }
