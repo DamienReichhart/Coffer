@@ -19,6 +19,7 @@ pub mod options;
 pub mod progress;
 pub mod runner;
 pub mod version;
+pub mod volumes;
 
 pub use error::{Error, Result};
 pub use listing::{ArchiveInfo, Entry, Listing};
