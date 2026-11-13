@@ -8,7 +8,8 @@ use std::path::{Path, PathBuf};
 use coffer_core::command::{self, Dialect};
 use coffer_core::listing::Tree;
 use coffer_core::{
-    ArchiveFormat, CompressOptions, Error, Event, ExtractOptions, HashAlgorithm, OverwriteMode, SevenZip, runner,
+    ArchiveFormat, CompressOptions, Error, Event, ExtractOptions, HashAlgorithm, OverwriteMode, SevenZip, SplitSize,
+    runner, volumes,
 };
 use futures_util::StreamExt;
 
@@ -135,4 +136,48 @@ async fn not_an_archive() {
     std::fs::write(&file, "just text").expect("write");
     let err = runner::list(&seven, &file, None).await.expect_err("not an archive");
     assert!(matches!(err, Error::UnsupportedArchive { .. }), "{err:?}");
+}
+
+#[tokio::test]
+async fn split_archive_opens_and_extracts_from_any_volume() {
+    let Some(seven) = seven().await else { return };
+    let dir = tempfile::tempdir().expect("tempdir");
+    let src = sample(dir.path());
+    // Random data does not compress: 600 KB makes ten volumes of 64 KiB.
+    let noise: Vec<u8> = (0..600_000_u32).map(|i| (i.wrapping_mul(2_654_435_761) >> 13) as u8).collect();
+    std::fs::write(src.join("noise.bin"), noise).expect("write");
+    let archive = dir.path().join("big.7z");
+    let dialect = Dialect::of(&seven);
+    let options = CompressOptions {
+        format: ArchiveFormat::SevenZ,
+        level: coffer_core::CompressionLevel::Store,
+        split: Some(SplitSize::Bytes(64 * 1024)),
+        ..Default::default()
+    };
+    finish(&seven, command::add(dialect, &archive, &[src], &options)).await.expect("create");
+
+    let set = volumes::detect(&dir.path().join("big.7z.004")).expect("a volume set");
+    assert!(set.volumes.len() >= 10, "{:?}", set.volumes);
+    assert!(set.is_complete());
+    assert_eq!(set.primary, dir.path().join("big.7z.001"));
+
+    let listing = runner::list(&seven, &set.primary, None).await.expect("list");
+    assert_eq!(listing.file_count(), 4);
+    assert_eq!(listing.info.volumes, Some(set.volumes.len() as u64));
+
+    let out = dir.path().join("out");
+    let options = ExtractOptions {
+        destination: out.clone(),
+        overwrite: OverwriteMode::Overwrite,
+        keep_paths: true,
+        password: None,
+        only: vec![],
+    };
+    finish(&seven, command::extract(dialect, &set.primary, &options)).await.expect("extract");
+    assert_eq!(std::fs::read(out.join("src/noise.bin")).expect("extracted").len(), 600_000);
+
+    // Without its last volume the set is truncated: the error says so.
+    std::fs::remove_file(set.volumes.last().expect("volumes")).expect("remove");
+    let err = runner::list(&seven, &set.primary, None).await.expect_err("incomplete");
+    assert!(matches!(err, Error::MissingVolume(_)), "{err:?}");
 }
