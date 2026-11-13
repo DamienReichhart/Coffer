@@ -16,7 +16,7 @@ coffer --help
 
 | Command | What it does |
 | --- | --- |
-| `coffer` | Opens the welcome screen. |
+| `coffer` | Opens the home screen. |
 | `coffer photos.7z` | Opens the archive. This is what file associations and *Open with* use. |
 | `coffer --extract photos.7z` | Opens the extract dialog for the archive. |
 | `coffer --extract photos.7z --to ~/Pictures` | The same, with the destination filled in. |
