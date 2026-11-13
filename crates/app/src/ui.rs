@@ -168,7 +168,8 @@ pub fn form_page<'a>(header: El<'a>, body: El<'a>, actions: El<'a>) -> El<'a> {
     // The bar is a layer above the content, so nothing scrolled under it shows through.
     iced::widget::stack![
         scrolling(header, body, ACTION_BAR + XL),
-        container(bar).align_bottom(Length::Fill).width(Length::Fill),
+        // Opaque, so clicks on the bar never reach the field scrolled under it.
+        container(iced::widget::opaque(bar)).align_bottom(Length::Fill).width(Length::Fill),
     ]
     .into()
 }
