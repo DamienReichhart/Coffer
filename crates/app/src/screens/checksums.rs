@@ -154,37 +154,30 @@ pub fn view(app: &App) -> El<'_> {
     );
 
     let files: El<'_> = if state.files.is_empty() {
-        container(
-            column![
-                ui::icon_tile(Icon::Hash, Tone::Accent, 44.0),
-                ui::strong("Drop files or folders here"),
-                ui::small("Folders are hashed file by file.")
-            ]
-            .spacing(8)
-            .align_x(Alignment::Center),
-        )
-        .padding(24)
-        .center_x(Length::Fill)
-        .style(theme::drop_zone(false))
+        column![
+            ui::muted("Nothing added yet.").size(13),
+            ui::small("Add files, or drop files and folders on this window. Folders are hashed file by file."),
+        ]
+        .spacing(2)
         .into()
     } else {
         column(state.files.iter().enumerate().map(|(i, p)| {
             row![
-                icon(if p.is_dir() { Icon::Folder } else { Icon::File }, 17.0),
-                text(p.display().to_string()).width(Length::Fill),
+                icon(if p.is_dir() { Icon::Folder } else { Icon::File }, 16.0),
+                text(p.display().to_string()).size(13).width(Length::Fill),
                 ui::icon_button(Icon::X, "Remove", Some(Message::Checksums(Msg::Remove(i)))),
             ]
             .spacing(10)
             .align_y(Alignment::Center)
             .into()
         }))
-        .spacing(6)
+        .spacing(2)
         .into()
     };
 
     let algorithms = row(state.available.iter().map(|a| {
         button(text(a.to_string()).size(13))
-            .padding([6, 12])
+            .padding([4, 10])
             .style(theme::chip(state.algorithms.contains(a)))
             .on_press(Message::Checksums(Msg::Toggle(*a)))
             .into()
@@ -197,7 +190,7 @@ pub fn view(app: &App) -> El<'_> {
         "Compute",
         (!state.files.is_empty() && running.is_none()).then_some(Message::Checksums(Msg::Compute)),
     );
-    let input = column![
+    let input = ui::rows(vec![
         files,
         row![
             ui::secondary(Some(Icon::FilePlus), "Add files…", Some(Message::Checksums(Msg::AddDialog))),
@@ -206,35 +199,33 @@ pub fn view(app: &App) -> El<'_> {
             compute,
         ]
         .spacing(8)
-        .align_y(Alignment::Center),
-    ]
-    .spacing(14);
+        .align_y(Alignment::Center)
+        .into(),
+    ]);
 
     let mut body = column![
-        ui::section("Files", None, input.into()),
+        ui::section("Files", None, input),
         ui::section(
             "Algorithms",
-            Some("Choose one or more. Those your 7-Zip doesn't support are hidden."),
-            column![
-                algorithms,
+            Some("Those your 7-Zip doesn't support are hidden."),
+            ui::rows(vec![
+                algorithms.into(),
                 ui::field(
                     "Verify against",
                     Some("Paste a published checksum: the matching line turns green."),
                     ui::input("Expected checksum", &state.compare, |v| Message::Checksums(Msg::Compare(v))).into(),
                 ),
-            ]
-            .spacing(16)
-            .into(),
+            ]),
         ),
     ]
-    .spacing(ui::L);
+    .spacing(ui::XL);
 
     if let Some(job) = running {
         body = body.push(ui::section(
             "Computing…",
             None,
             column![
-                progress_bar(0.0..=100.0, f32::from(job.percent)).girth(6).style(theme::progress(Tone::Accent)),
+                progress_bar(0.0..=100.0, f32::from(job.percent)).girth(4).style(theme::progress(Tone::Accent)),
                 ui::small(job.current.clone().unwrap_or_default()),
             ]
             .spacing(8)
@@ -269,7 +260,7 @@ fn results(state: &State) -> El<'_> {
         let mut lines = column![
             row![
                 icon(Icon::File, 16.0),
-                ui::strong(file.path.as_str()).width(Length::Fill),
+                text(file.path.as_str()).size(13).font(crate::fonts::MEDIUM).width(Length::Fill),
                 ui::small(file.size.map(coffer_core::format::bytes).unwrap_or_default()),
             ]
             .spacing(8)
@@ -281,11 +272,11 @@ fn results(state: &State) -> El<'_> {
             lines = lines.push(
                 row![
                     ui::small(name.as_str()).width(Length::Fixed(90.0)),
-                    container(ui::mono(digest.as_str()).style(move |t: &iced::Theme| {
+                    container(ui::mono(digest.as_str()).size(12).style(move |t: &iced::Theme| {
                         let tokens = theme::tokens(t);
                         iced::widget::text::Style { color: Some(if matched { tokens.success } else { tokens.text }) }
                     }))
-                    .padding([5, 10])
+                    .padding([4, 8])
                     .width(Length::Fill)
                     .style(move |t: &iced::Theme| if matched {
                         theme::tinted(Tone::Success)(t)
