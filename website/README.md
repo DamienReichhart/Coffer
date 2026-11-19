@@ -1,6 +1,6 @@
 # Coffer website
 
-The website and documentation at <https://damienreichhart.github.io/Coffer/>, built with
+The website and documentation at <https://damienreichhart.github.io/coffer/>, built with
 [Astro](https://astro.build) and [Starlight](https://starlight.astro.build) and deployed to GitHub
 Pages by `.github/workflows/pages.yml`.
 

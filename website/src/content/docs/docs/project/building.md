@@ -28,7 +28,7 @@ Coffer is a Rust workspace; the website is an Astro project in `website/`.
 ## Run
 
 ```sh
-git clone https://github.com/DamienReichhart/Coffer.git
+git clone https://github.com/DamienReichhart/coffer.git
 cd Coffer
 cargo run -p coffer
 ```

@@ -26,9 +26,9 @@
 
     <Icon Id="AppIcon" SourceFile="$(Packaging)\coffer.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
-    <Property Id="ARPHELPLINK" Value="https://damienreichhart.github.io/Coffer/docs/" />
-    <Property Id="ARPURLINFOABOUT" Value="https://damienreichhart.github.io/Coffer/" />
-    <Property Id="ARPURLUPDATEINFO" Value="https://damienreichhart.github.io/Coffer/download/" />
+    <Property Id="ARPHELPLINK" Value="https://damienreichhart.github.io/coffer/docs/" />
+    <Property Id="ARPURLINFOABOUT" Value="https://damienreichhart.github.io/coffer/" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://damienreichhart.github.io/coffer/download/" />
     <Property Id="ARPCOMMENTS" Value="Requires 7-Zip, installed separately." />
 
     <ui:WixUI Id="WixUI_Minimal" />

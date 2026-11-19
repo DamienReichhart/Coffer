@@ -1,10 +1,10 @@
 /**
  * A Sätteri hast plugin that prefixes root-relative links in Markdown and MDX
  * with the site's base path, so docs can link to `/docs/installation/` and work
- * whether the site is served from `/Coffer/` (a GitHub Pages project site) or
+ * whether the site is served from `/coffer/` (a GitHub Pages project site) or
  * from the root of a custom domain. Covers plain links and <LinkCard href>.
  *
- * @param {string} base  Astro's `base`, e.g. `/Coffer`.
+ * @param {string} base  Astro's `base`, e.g. `/coffer`.
  * Untyped on purpose: Starlight and @astrojs/markdown-satteri depend on two
  * different satteri versions, whose plugin types don't match each other.
  *

@@ -150,8 +150,8 @@ export const changelogAnchor = (/** @type {string} */ version) =>
   `v${version.replace(/[^0-9A-Za-z]+/g, '-')}`;
 
 /**
- * Joins the site's origin and base path: (`https://x.github.io`, `/Coffer/`) →
- * `https://x.github.io/Coffer`.
+ * Joins the site's origin and base path: (`https://x.github.io`, `/coffer/`) →
+ * `https://x.github.io/coffer`.
  *
  * @param {string} origin
  * @param {string} basePath

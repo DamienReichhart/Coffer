@@ -22,14 +22,14 @@
     <p>7-Zip is not included: install it from your distribution (the 7zip package).</p>
   </description>
   <launchable type="desktop-id">io.github.damienreichhart.Coffer.desktop</launchable>
-  <url type="homepage">https://damienreichhart.github.io/Coffer/</url>
-  <url type="bugtracker">https://github.com/DamienReichhart/Coffer/issues</url>
-  <url type="vcs-browser">https://github.com/DamienReichhart/Coffer</url>
-  <url type="help">https://damienreichhart.github.io/Coffer/docs/</url>
+  <url type="homepage">https://damienreichhart.github.io/coffer/</url>
+  <url type="bugtracker">https://github.com/DamienReichhart/coffer/issues</url>
+  <url type="vcs-browser">https://github.com/DamienReichhart/coffer</url>
+  <url type="help">https://damienreichhart.github.io/coffer/docs/</url>
   <screenshots>
     <screenshot type="default">
       <caption>Browsing an archive</caption>
-      <image>https://damienreichhart.github.io/Coffer/screenshots/browse.png</image>
+      <image>https://damienreichhart.github.io/coffer/screenshots/browse.png</image>
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>

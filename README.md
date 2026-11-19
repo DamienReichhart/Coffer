@@ -6,15 +6,15 @@
 
 <p align="center">
   A modern, native desktop interface for 7-Zip — for Windows, macOS and Linux, on x64 and ARM.<br>
-  <a href="https://damienreichhart.github.io/Coffer/">Website</a> ·
-  <a href="https://damienreichhart.github.io/Coffer/download/">Download</a> ·
-  <a href="https://damienreichhart.github.io/Coffer/docs/">Documentation</a> ·
+  <a href="https://damienreichhart.github.io/coffer/">Website</a> ·
+  <a href="https://damienreichhart.github.io/coffer/download/">Download</a> ·
+  <a href="https://damienreichhart.github.io/coffer/docs/">Documentation</a> ·
   <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/DamienReichhart/Coffer/actions/workflows/ci.yml"><img src="https://github.com/DamienReichhart/Coffer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/DamienReichhart/Coffer/actions/workflows/release.yml"><img src="https://github.com/DamienReichhart/Coffer/actions/workflows/release.yml/badge.svg" alt="Release"></a>
+  <a href="https://github.com/DamienReichhart/coffer/actions/workflows/ci.yml"><img src="https://github.com/DamienReichhart/coffer/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/DamienReichhart/coffer/actions/workflows/release.yml"><img src="https://github.com/DamienReichhart/coffer/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT licence"></a>
 </p>
 
@@ -27,7 +27,7 @@ runtime.
 
 > **7-Zip is not included.** Coffer never bundles, downloads or links 7-Zip.
 > Install it with `winget install 7zip.7zip`, `brew install sevenzip` or
-> `sudo apt install 7zip` (more in the [docs](https://damienreichhart.github.io/Coffer/docs/installing-7zip/)).
+> `sudo apt install 7zip` (more in the [docs](https://damienreichhart.github.io/coffer/docs/installing-7zip/)).
 > Coffer is an independent project, not affiliated with 7-Zip or Igor Pavlov.
 
 ## Features
@@ -50,8 +50,8 @@ runtime.
 | macOS 11+ (Apple silicon), 10.15+ (Intel) | `.dmg` |
 | Linux (x64, ARM64) | `.deb`, `.rpm`, `.AppImage`, APT and DNF repositories |
 
-Everything is on the [download page](https://damienreichhart.github.io/Coffer/download/) and on
-[GitHub Releases](https://github.com/DamienReichhart/Coffer/releases), with `SHA256SUMS.txt`,
+Everything is on the [download page](https://damienreichhart.github.io/coffer/download/) and on
+[GitHub Releases](https://github.com/DamienReichhart/coffer/releases), with `SHA256SUMS.txt`,
 minisign signatures and build provenance.
 
 ## Build from source

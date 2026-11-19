@@ -46,4 +46,4 @@ starting point.
 
 ## How do I report a bug or request a feature?
 
-Open an issue on [GitHub](https://github.com/DamienReichhart/Coffer/issues).
+Open an issue on [GitHub](https://github.com/DamienReichhart/coffer/issues).

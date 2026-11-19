@@ -11,7 +11,7 @@ import {
   siteRoot,
 } from './releases.mjs';
 
-const ROOT = 'https://damienreichhart.github.io/Coffer';
+const ROOT = 'https://damienreichhart.github.io/coffer';
 const HEX = (c) => c.repeat(64);
 
 describe('classifyAsset', () => {
@@ -92,7 +92,7 @@ const release = (tag, extra = {}) => ({
   draft: false,
   prerelease: false,
   published_at: '2026-11-12T10:00:00Z',
-  html_url: `https://github.com/DamienReichhart/Coffer/releases/tag/${tag}`,
+  html_url: `https://github.com/DamienReichhart/coffer/releases/tag/${tag}`,
   assets: [],
   ...extra,
 });
@@ -111,7 +111,7 @@ describe('selectReleases', () => {
 const gh = (name, size = 100) => ({
   name,
   size,
-  browser_download_url: `https://github.com/DamienReichhart/Coffer/releases/download/v1.2.3/${name}`,
+  browser_download_url: `https://github.com/DamienReichhart/coffer/releases/download/v1.2.3/${name}`,
 });
 
 function sample(extra = {}) {
@@ -188,7 +188,7 @@ describe('helpers', () => {
   it('builds anchors and roots', () => {
     assert.equal(changelogAnchor('1.2.3'), 'v1-2-3');
     assert.equal(changelogAnchor('2.0.0-rc.1'), 'v2-0-0-rc-1');
-    assert.equal(siteRoot('https://x.github.io/', '/Coffer/'), 'https://x.github.io/Coffer');
+    assert.equal(siteRoot('https://x.github.io/', '/coffer/'), 'https://x.github.io/coffer');
     assert.equal(siteRoot('https://example.com', '/'), 'https://example.com');
   });
 });

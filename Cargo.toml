@@ -12,8 +12,8 @@ edition = "2024"
 rust-version = "1.92"
 license = "MIT"
 authors = ["Damien Reichhart"]
-repository = "https://github.com/DamienReichhart/Coffer"
-homepage = "https://damienreichhart.github.io/Coffer/"
+repository = "https://github.com/DamienReichhart/coffer"
+homepage = "https://damienreichhart.github.io/coffer/"
 
 [workspace.dependencies]
 coffer-core = { path = "crates/core" }

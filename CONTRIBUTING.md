@@ -4,7 +4,7 @@ Thanks for helping. Bug reports, ideas and pull requests are all welcome.
 
 ## Before you start
 
-- Search the [issues](https://github.com/DamienReichhart/Coffer/issues) first.
+- Search the [issues](https://github.com/DamienReichhart/coffer/issues) first.
 - For anything bigger than a small fix, open an issue to agree on the approach.
 - Security problems: see [SECURITY.md](SECURITY.md), not public issues.
 

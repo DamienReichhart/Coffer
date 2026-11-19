@@ -52,4 +52,4 @@ version. No identifier, no usage data, nothing about your files. See [Privacy](/
 ## Which versions are offered
 
 Only stable releases. The website keeps the last five releases; older ones remain on
-[GitHub Releases](https://github.com/DamienReichhart/Coffer/releases).
+[GitHub Releases](https://github.com/DamienReichhart/coffer/releases).

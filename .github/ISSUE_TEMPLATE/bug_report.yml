@@ -4,7 +4,7 @@ labels: [bug]
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting! Please check the [troubleshooting guide](https://damienreichhart.github.io/Coffer/docs/troubleshooting/) first.
+      value: Thanks for reporting! Please check the [troubleshooting guide](https://damienreichhart.github.io/coffer/docs/troubleshooting/) first.
   - type: textarea
     id: what
     attributes:

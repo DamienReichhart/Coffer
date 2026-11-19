@@ -32,7 +32,7 @@ pub const PUBLIC_KEY: Option<&str> = key::PUBLIC_KEY;
 
 /// Where the website publishes the manifest. `COFFER_UPDATE_URL`
 /// overrides it, for testing against a local server.
-pub const DEFAULT_MANIFEST_URL: &str = "https://damienreichhart.github.io/Coffer/updates/latest.json";
+pub const DEFAULT_MANIFEST_URL: &str = "https://damienreichhart.github.io/coffer/updates/latest.json";
 
 /// The manifest URL to use.
 pub fn manifest_url() -> String {
@@ -80,7 +80,7 @@ pub fn agent() -> ureq::Agent {
     let tls = ureq::tls::TlsConfig::builder().root_certs(ureq::tls::RootCerts::PlatformVerifier).build();
     ureq::Agent::config_builder()
         .tls_config(tls)
-        .user_agent(concat!("Coffer/", env!("CARGO_PKG_VERSION"), " (+https://github.com/DamienReichhart/Coffer)"))
+        .user_agent(concat!("Coffer/", env!("CARGO_PKG_VERSION"), " (+https://github.com/DamienReichhart/coffer)"))
         .timeout_connect(Some(Duration::from_secs(15)))
         // Bodies are installers of tens of megabytes on slow links.
         .timeout_recv_body(Some(Duration::from_mins(30)))
