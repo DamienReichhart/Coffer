@@ -44,6 +44,6 @@ signatures and build provenance attestations — see [Verifying downloads](/docs
 ## Reporting a vulnerability
 
 Please report security issues privately through
-[GitHub Security Advisories](https://github.com/DamienReichhart/Coffer/security/advisories/new)
+[GitHub Security Advisories](https://github.com/DamienReichhart/coffer/security/advisories/new)
 rather than a public issue. Vulnerabilities in 7-Zip itself should go to the
 [7-Zip project](https://www.7-zip.org/).

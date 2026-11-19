@@ -49,7 +49,7 @@ with `os ∈ {linux, windows, macos}`, `arch ∈ {x64, arm64}` and
 ## Update manifest (contract: website ⇄ updater)
 
 The website publishes `updates/latest.json` (latest stable release) at
-`https://damienreichhart.github.io/Coffer/updates/latest.json`:
+`https://damienreichhart.github.io/coffer/updates/latest.json`:
 
 ```json
 {
@@ -57,12 +57,12 @@ The website publishes `updates/latest.json` (latest stable release) at
   "version": "1.2.3",
   "pub_date": "2026-11-12T10:00:00Z",
   "notes": "Markdown release notes",
-  "notes_url": "https://damienreichhart.github.io/Coffer/changelog/#v1-2-3",
+  "notes_url": "https://damienreichhart.github.io/coffer/changelog/#v1-2-3",
   "assets": {
     "linux-x64-deb": {
       "name": "Coffer-1.2.3-linux-x64.deb",
-      "url": "https://damienreichhart.github.io/Coffer/downloads/v1.2.3/Coffer-1.2.3-linux-x64.deb",
-      "mirror": "https://github.com/DamienReichhart/Coffer/releases/download/v1.2.3/Coffer-1.2.3-linux-x64.deb",
+      "url": "https://damienreichhart.github.io/coffer/downloads/v1.2.3/Coffer-1.2.3-linux-x64.deb",
+      "mirror": "https://github.com/DamienReichhart/coffer/releases/download/v1.2.3/Coffer-1.2.3-linux-x64.deb",
       "size": 12345678,
       "sha256": "<hex>",
       "signature": "<full text of the .minisig file>"

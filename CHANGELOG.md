@@ -10,6 +10,12 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-19
+
+### Changed
+
+- The project moved from `DamienReichhart/Coffer` to `DamienReichhart/coffer`, so the website is now at <https://damienreichhart.github.io/coffer/>. If you installed from the APT or RPM repository, point your source at the new address: replace `/etc/apt/sources.list.d/coffer.list` with `deb [signed-by=/usr/share/keyrings/coffer.gpg] https://damienreichhart.github.io/coffer/ stable main`, or download `https://damienreichhart.github.io/coffer/coffer.repo` again to `/etc/yum.repos.d/coffer.repo`.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
@@ -27,7 +33,7 @@ heading, set the same version in `Cargo.toml` (`[workspace.package]`), run
 
 ### Changed
 
-- The APT repository now uses the standard Debian layout. If you added it with v0.1.0's instructions, replace the line in `/etc/apt/sources.list.d/coffer.list` with `deb [signed-by=/usr/share/keyrings/coffer.gpg] https://damienreichhart.github.io/Coffer/ stable main`.
+- The APT repository now uses the standard Debian layout. If you added it with v0.1.0's instructions, replace the line in `/etc/apt/sources.list.d/coffer.list` with `deb [signed-by=/usr/share/keyrings/coffer.gpg] https://damienreichhart.github.io/coffer/ stable main`.
 
 ### Fixed
 
@@ -50,7 +56,8 @@ The application itself is unchanged from 0.1.0.
 - Automatic updates from the website: every installer is checked against its SHA-256 and a minisign signature before it runs.
 - Installers for Windows (MSI and portable, x64 and ARM64), macOS (Apple silicon and Intel) and Linux (deb, rpm and AppImage, x64 and ARM64).
 
-[Unreleased]: https://github.com/DamienReichhart/Coffer/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/DamienReichhart/Coffer/compare/v0.1.1...v0.2.0
-[0.1.1]: https://github.com/DamienReichhart/Coffer/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/DamienReichhart/Coffer/releases/tag/v0.1.0
+[Unreleased]: https://github.com/DamienReichhart/coffer/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/DamienReichhart/coffer/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/DamienReichhart/coffer/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/DamienReichhart/coffer/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/DamienReichhart/coffer/releases/tag/v0.1.0

@@ -23,7 +23,7 @@ pub const APP_ID: &str = "io.github.damienreichhart.Coffer";
 const SUMMARY: &str = "A modern desktop interface for 7-Zip";
 const DESCRIPTION: &str = "Coffer opens, creates, extracts, tests and checksums archives with the 7-Zip \
 command-line program installed on the computer. 7-Zip itself is not included.";
-const HOMEPAGE: &str = "https://damienreichhart.github.io/Coffer/";
+const HOMEPAGE: &str = "https://damienreichhart.github.io/coffer/";
 const MAINTAINER: &str = "Damien Reichhart <damienreichhart@users.noreply.github.com>";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -173,7 +173,7 @@ fn linux_tree(ctx: &Ctx<'_>, root: &Path, kind: &str) -> Result<()> {
     write(
         &usr.join("share/doc").join(BINARY).join("copyright"),
         format!(
-            "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: {PRODUCT}\nSource: https://github.com/DamienReichhart/Coffer\n\nFiles: *\nCopyright: Damien Reichhart\nLicense: MIT\n{}\n",
+            "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: {PRODUCT}\nSource: https://github.com/DamienReichhart/coffer\n\nFiles: *\nCopyright: Damien Reichhart\nLicense: MIT\n{}\n",
             license
                 .lines()
                 .map(|l| if l.is_empty() { " .".to_owned() } else { format!(" {l}") })

@@ -60,5 +60,5 @@ The build isn’t notarized. See [Installation → macOS](/docs/installation/).
 ## Logs
 
 **Settings → Advanced → Open log folder** opens the app’s log files. Attach the latest one, and the
-job’s 7-Zip log, when you [open an issue](https://github.com/DamienReichhart/Coffer/issues). Set
+job’s 7-Zip log, when you [open an issue](https://github.com/DamienReichhart/coffer/issues). Set
 `RUST_LOG=debug` before starting the app for more detail.

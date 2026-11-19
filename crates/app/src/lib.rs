@@ -26,12 +26,12 @@ pub const APP_NAME: &str = "Coffer";
 /// The running version (the workspace version).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 /// The website and the pages the app links to.
-pub const WEBSITE: &str = "https://damienreichhart.github.io/Coffer/";
-pub const DOCS: &str = "https://damienreichhart.github.io/Coffer/docs/";
-pub const DOWNLOAD_PAGE: &str = "https://damienreichhart.github.io/Coffer/download/";
-pub const CHANGELOG: &str = "https://damienreichhart.github.io/Coffer/changelog/";
-pub const REPOSITORY: &str = "https://github.com/DamienReichhart/Coffer";
-pub const ISSUES: &str = "https://github.com/DamienReichhart/Coffer/issues/new/choose";
+pub const WEBSITE: &str = "https://damienreichhart.github.io/coffer/";
+pub const DOCS: &str = "https://damienreichhart.github.io/coffer/docs/";
+pub const DOWNLOAD_PAGE: &str = "https://damienreichhart.github.io/coffer/download/";
+pub const CHANGELOG: &str = "https://damienreichhart.github.io/coffer/changelog/";
+pub const REPOSITORY: &str = "https://github.com/DamienReichhart/coffer";
+pub const ISSUES: &str = "https://github.com/DamienReichhart/coffer/issues/new/choose";
 
 /// Starts the application with what the command line asked for.
 pub fn run(launch: cli::Launch) -> iced::Result {

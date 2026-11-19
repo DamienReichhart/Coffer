@@ -7,7 +7,7 @@ Contributions are welcome — bug reports, ideas, documentation fixes and code.
 
 ## Reporting a bug
 
-Open an [issue](https://github.com/DamienReichhart/Coffer/issues/new/choose) with:
+Open an [issue](https://github.com/DamienReichhart/coffer/issues/new/choose) with:
 
 - your operating system and architecture, the Coffer version (**About**) and the 7-Zip version
   (**Settings → 7-Zip**);

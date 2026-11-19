@@ -14,7 +14,7 @@
  *
  * Environment:
  *   GITHUB_TOKEN        optional; raises the API rate limit
- *   GITHUB_REPOSITORY   owner/name (default DamienReichhart/Coffer)
+ *   GITHUB_REPOSITORY   owner/name (default DamienReichhart/coffer)
  *   SITE_URL, BASE_PATH the site's origin and base path, as Astro gets them
  *   RELEASES_REQUIRED=1 fail instead of writing empty data when GitHub can't be read
  *   MAX_DOWNLOAD_MB     refuse to host more than this (default 900: Pages allows 1 GB)
@@ -42,13 +42,13 @@ const DATA_FILE = join(website, 'src/data/releases.json');
 const UPDATES_DIR = join(website, 'public/updates');
 const DOWNLOADS_DIR = join(website, 'public/downloads');
 
-const repository = process.env.GITHUB_REPOSITORY || 'DamienReichhart/Coffer';
+const repository = process.env.GITHUB_REPOSITORY || 'DamienReichhart/coffer';
 const token = process.env.GITHUB_TOKEN || '';
 const required = process.env.RELEASES_REQUIRED === '1';
 const download = process.argv.includes('--download');
 const maxBytes = Number(process.env.MAX_DOWNLOAD_MB || 900) * 1024 * 1024;
 const origin = process.env.SITE_URL || 'https://damienreichhart.github.io';
-const basePath = process.env.SITE_URL ? process.env.BASE_PATH || '/' : '/Coffer';
+const basePath = process.env.SITE_URL ? process.env.BASE_PATH || '/' : '/coffer';
 const root = siteRoot(origin, basePath);
 
 const headers = {
